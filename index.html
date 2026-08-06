@@ -295,15 +295,10 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 }
 .tier .price{font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1}
 .tier .price small{font-size:16px;font-weight:700;color:var(--ink-2);margin-left:5px}
-.tier .name{margin:6px 0 18px;font-size:15px;font-weight:700;color:var(--ink-2);
+.tier .name{margin:6px 0 22px;font-size:15px;font-weight:700;color:var(--ink-2);
   display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .totalslots{font-size:12.5px;font-weight:700;color:var(--ink-3)}
 .totalslots b{color:var(--gold-lit);font-variant-numeric:tabular-nums}
-.tier ul{list-style:none;margin:0 0 20px;padding:0;font-size:13.5px;color:var(--ink-2)}
-.tier li{display:flex;gap:9px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.07)}
-.tier li:last-child{border-bottom:0}
-.tier li i{font-style:normal;color:var(--gold);flex:none}
-.tier li b{color:var(--ink);font-weight:700}
 
 /* ---------------- 释放时间线 ---------------- */
 .timeline{display:grid;gap:12px;margin-top:4px}
@@ -638,9 +633,6 @@ html.reveal-ready .reveal[data-d="3"]{transition-delay:.24s}
         <span class="badge" id="t1Badge" data-i18n="tier.badge1">团队长优选</span>
         <div class="price" id="t1Price">1<small>BNB</small></div>
         <div class="name"><span id="t1Name" data-i18n="tier.name1">社区额度</span><span class="totalslots"><span data-i18n="tier.total" data-slotlabel>总份额</span> <b id="t1Slots">100</b> <span data-i18n="tier.shares">份</span></span></div>
-        <ul>
-          <li><i>◇</i><span data-i18n="tier.perAddr">每地址最多</span> <b id="t1Max">10</b> <span data-i18n="tier.shares">份</span></li>
-        </ul>
         <div class="qty">
           <button class="qbtn" data-step="1:-1" aria-label="减少">−</button>
           <input id="t1Qty" class="qin" inputmode="numeric" value="1" aria-label="份数">
@@ -653,9 +645,6 @@ html.reveal-ready .reveal[data-d="3"]{transition-delay:.24s}
         <span class="badge" id="t2Badge" data-i18n="tier.badge2">人人可参与</span>
         <div class="price" id="t2Price">0.2<small>BNB</small></div>
         <div class="name"><span id="t2Name" data-i18n="tier.name2">散户额度</span><span class="totalslots"><span data-i18n="tier.total" data-slotlabel>总份额</span> <b id="t2Slots">2000</b> <span data-i18n="tier.shares">份</span></span></div>
-        <ul>
-          <li><i>◇</i><span data-i18n="tier.perAddr">每地址最多</span> <b id="t2Max">10</b> <span data-i18n="tier.shares">份</span></li>
-        </ul>
         <div class="qty">
           <button class="qbtn" data-step="2:-1" aria-label="减少">−</button>
           <input id="t2Qty" class="qin" inputmode="numeric" value="1" aria-label="份数">
