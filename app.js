@@ -152,9 +152,9 @@
     call(C.mining, SEL.stats).then(function (r) {
       var w = words(r);
       if (w.length < 5) return;
-      $("sPool").textContent = fmt(toBig(w[0]));
-      $("sBurned").textContent = fmt(toBig(w[1]));
-      $("sQuota").textContent = fmt(toBig(w[2]));
+      countTo($("sPool"), fmt(toBig(w[0])));
+      countTo($("sBurned"), fmt(toBig(w[1])));
+      countTo($("sQuota"), fmt(toBig(w[2])));
       st.miningUsers = Number(toBig(w[4]));
       renderUsers();
     });
@@ -263,7 +263,7 @@
 
   function renderUsers() {
     var n = (st.miningUsers || 0) + (st.presaleUsers || 0);
-    $("sUsers").textContent = n ? String(n) : "—";
+    if (n) countTo($("sUsers"), String(n)); else $("sUsers").textContent = "—";
   }
 
   function renderTiers() {
@@ -520,6 +520,75 @@
     });
   }
 
+  /* ---------------- 滚动墙 ---------------- */
+  function renderMarquee() {
+    var list = C.marquee || [];
+    if (!list.length) return;
+    // Each track carries the list twice so the -50% translate lands on an identical frame
+    // and the loop has no visible seam.
+    function build(el, items) {
+      el.innerHTML = "";
+      var twice = items.concat(items);
+      twice.forEach(function (m) {
+        var d = document.createElement("div");
+        d.className = "chip";
+        d.innerHTML = '<span class="dot"></span><span>' + esc(m.name || "") + "</span>" +
+          (m.tag ? '<span class="tagmini">' + esc(m.tag) + "</span>" : "");
+        el.appendChild(d);
+      });
+    }
+    build($("mqA"), list);
+    build($("mqB"), list.slice().reverse());
+  }
+
+  /* ---------------- 滚动入场 ---------------- */
+  function initReveal() {
+    var els = document.querySelectorAll(".reveal");
+    if (!els.length) return;
+    if (!("IntersectionObserver" in window) || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    function showAll() {
+      for (var i = 0; i < els.length; i++) els[i].classList.add("in");
+    }
+
+    // Only now is it safe to start from hidden: the observer below is what brings it back.
+    document.documentElement.classList.add("reveal-ready");
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.06 });
+    for (var j = 0; j < els.length; j++) io.observe(els[j]);
+
+    // Backstops. Wallet in-app browsers throttle observers on hidden tabs, and a page that
+    // was loaded in the background can come forward with everything still at zero opacity.
+    setTimeout(showAll, 3500);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) setTimeout(showAll, 400);
+    });
+  }
+
+  /* ---------------- 数字滚动 ---------------- */
+  // Counts from the previous figure to the new one so a refresh reads as movement, not a jump.
+  function countTo(el, text) {
+    if (!el) return;
+    var target = parseFloat(String(text).replace(/[^\d.]/g, ""));
+    var suffix = String(text).replace(/^[\d.,]+/, "");
+    if (!isFinite(target)) { el.textContent = text; return; }
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = text; return; }
+    var from = parseFloat(String(el.textContent).replace(/[^\d.]/g, "")) || 0;
+    if (from === target) { el.textContent = text; return; }
+    var t0 = performance.now(), dur = 700;
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur);
+      var eased = 1 - Math.pow(1 - k, 3);
+      var v = from + (target - from) * eased;
+      el.textContent = (target >= 100 ? Math.round(v) : v.toFixed(2)) + suffix;
+      if (k < 1) requestAnimationFrame(step); else el.textContent = text;
+    })(t0);
+  }
+
   /* ---------------- 火星 ---------------- */
   function embers() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -577,6 +646,7 @@
   function init() {
     initTabs();
     initQty();
+    renderMarquee();
     renderEco();
     renderSocial();
     renderTiers();
@@ -584,6 +654,7 @@
     updateTag();
     initFooter();
     embers();
+    initReveal();
     tick(); setInterval(tick, 1000);
 
     var ref = new URLSearchParams(location.search).get("ref");

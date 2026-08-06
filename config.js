@@ -39,6 +39,23 @@ window.COOKIE_CONFIG = {
   presaleTreasury: "0xD25d311Ee40F5d6B221748a78f04C6B0A6AEB5ad",  // 收款地址(部署后用 setTreasury 写进合约)
   presaleSweepMinutes: 3,          // 自动归集间隔,合约里可改(setSweep,下限 60 秒)
 
+  // 首屏滚动墙。
+  // ⚠️ 这里放的每一条都是对外声明 —— 只写你们真正在用或真正谈成的,
+  //    别把没有关系的项目方 logo 摆上去,社区一查就穿帮。
+  //    tag 留空则不显示右侧小标签。
+  marquee: [
+    { name: "BNB Chain",     tag: "部署链" },
+    { name: "PancakeSwap",   tag: "流动性" },
+    { name: "销毁挖矿",       tag: "上线" },
+    { name: "三代邀请",       tag: "上线" },
+    { name: "每日零点释放",    tag: "" },
+    { name: "预测体育赛事",    tag: "开发中" },
+    { name: "Polymarket",    tag: "接入中" },
+    { name: "AI Agent NFT",  tag: "规划中" },
+    { name: "合约开源可查",    tag: "" },
+    { name: "1.5× 预售筹码",  tag: "" }
+  ],
+
   // 生态板块
   ecosystem: [
     {

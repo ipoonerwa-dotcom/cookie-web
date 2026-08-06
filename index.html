@@ -8,55 +8,88 @@
 <style>
 :root{
   /* Muted gold, not yellow: saturation is what makes metallics read as cheap. */
-  --gold-dim:#8a6f2a;
-  --gold:#c9a227;
-  --gold-lit:#e8d296;
-  --gold-pale:#f3ead0;
+  /* Deeper and warmer than a yellow: the hue sits nearer bronze so it reads as metal.
+     Value is held low on purpose -- bright gold on black is what looks like plastic. */
+  --gold-dim:#5c4712;
+  --gold:#a67c1f;
+  --gold-lit:#d8bc7a;
+  --gold-pale:#e6d9b8;
   /* A brushed-metal sweep rather than a rainbow: one hue, three lightnesses. */
-  --grad:linear-gradient(100deg,#9c7d24 0%,#e8d296 46%,#c9a227 100%);
-  --grad-soft:linear-gradient(100deg,rgba(201,162,39,.13),rgba(232,210,150,.08));
+  --grad:linear-gradient(100deg,#6f5415 0%,#d8bc7a 44%,#a67c1f 100%);
+  --grad-soft:linear-gradient(100deg,rgba(166,124,31,.14),rgba(216,188,122,.07));
   --ink:#f6f3ec;
   --ink-2:rgba(246,243,236,.60);
   --ink-3:rgba(246,243,236,.52);
   --surf:rgba(255,252,240,.035);
   --surf-2:rgba(255,252,240,.062);
-  --line:rgba(232,210,150,.11);
-  --line-hot:rgba(201,162,39,.38);
+  --line:rgba(216,188,122,.10);
+  --line-hot:rgba(166,124,31,.46);
   --r:16px; --r-lg:22px;
   --shadow:0 18px 44px rgba(0,0,0,.62);
   /* Restraint: a thin rim instead of a coloured halo. */
-  --glow:0 0 0 1px rgba(201,162,39,.34), 0 16px 42px rgba(0,0,0,.5);
+  --glow:0 0 0 1px rgba(166,124,31,.42), 0 16px 42px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   min-height:100dvh;
   background:
-    radial-gradient(1200px 680px at 50% -10%, rgba(201,162,39,.10), transparent 64%),
-    radial-gradient(circle at 50% 0%, #121008 0%, #0a0906 44%, #030302 100%);
+    radial-gradient(1200px 680px at 50% -10%, rgba(166,124,31,.11), transparent 64%),
+    radial-gradient(circle at 50% 0%, #0d0b06 0%, #070604 46%, #020202 100%);
   background-attachment:fixed;
   color:var(--ink);
   font:400 15px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
 }
+/* Flat near-black is what reads cheap: a film of grain gives the surface something to
+   catch light on, and it kills the banding a large dark gradient always shows. */
+body::after{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* A single light source, high and centred, so every highlight below agrees with it. */
+body::before{
+  content:"";position:fixed;inset:0 0 auto;height:60vh;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 100% at 50% 0%, rgba(216,188,122,.05), transparent 70%);
+}
+main,header,footer{position:relative;z-index:2}
+
 a{color:inherit;text-decoration:none}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 button:disabled{cursor:not-allowed;opacity:.42}
 .wrap{width:min(1080px,100% - 32px);margin-inline:auto}
-.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad-text{
+  background:var(--grad);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:sheen 7s ease-in-out infinite;
+}
+/* Slow travel across the gradient reads as light moving over metal. */
+@keyframes sheen{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+/* Small, letterspaced, uppercase: the cheapest way to buy a page some formality. */
+.eyebrow{
+  display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--gold);opacity:.85;margin-bottom:14px;
+}
+.rule{
+  width:44px;height:1px;margin:0 auto 18px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 
 /* ---------------- 顶栏 ---------------- */
 header{
   position:sticky;top:0;z-index:40;
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  background:rgba(6,5,3,.78);
+  background:rgba(4,4,2,.80);
   border-bottom:1px solid var(--line);
 }
 .bar{display:flex;align-items:center;gap:12px;height:62px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:.2px}
-.brand svg{width:32px;height:32px;flex:none;filter:drop-shadow(0 4px 12px rgba(201,162,39,.35))}
+.brand svg{width:32px;height:32px;flex:none;filter:drop-shadow(0 4px 12px rgba(166,124,31,.32))}
 .spacer{flex:1}
 .btn{
   border-radius:12px;padding:10px 18px;font-weight:700;font-size:14px;
@@ -64,15 +97,29 @@ header{
   transition:.18s transform,.18s box-shadow,.18s background;
 }
 .btn:hover:not(:disabled){transform:translateY(-1px);background:rgba(255,255,255,.11)}
-.btn-hot{background:var(--grad);border:0;color:#120f06;text-shadow:0 1px 0 rgba(255,255,255,.18);box-shadow:0 8px 22px rgba(0,0,0,.5)}
-.btn-hot:hover:not(:disabled){box-shadow:0 12px 30px rgba(201,162,39,.26)}
+.btn-hot{
+  position:relative;overflow:hidden;
+  background:var(--grad);background-size:220% 100%;
+  border:0;color:#120f06;font-weight:800;
+  text-shadow:0 1px 0 rgba(255,255,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34), 0 8px 22px rgba(0,0,0,.5);
+  animation:sheen 7s ease-in-out infinite;
+}
+/* A hard specular streak crossing on hover -- what separates "gold" from "yellow". */
+.btn-hot::after{
+  content:"";position:absolute;inset:0;transform:translateX(-120%) skewX(-18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+  width:55%;
+}
+.btn-hot:hover:not(:disabled)::after{transform:translateX(320%) skewX(-18deg);transition:transform .75s cubic-bezier(.2,.8,.2,1)}
+.btn-hot:hover:not(:disabled){box-shadow:inset 0 1px 0 rgba(255,255,255,.36), 0 14px 34px rgba(166,124,31,.26)}
 .btn-lg{width:100%;padding:15px;font-size:16px;border-radius:14px}
 
 /* ---------------- Hero ---------------- */
 .hero{position:relative;padding:56px 0 40px;text-align:center;overflow:hidden}
 .hero canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.7}
 .hero-in{position:relative;z-index:1}
-.cookie-mark{width:112px;height:112px;margin:0 auto 20px;display:block;animation:bob 5.5s ease-in-out infinite;filter:drop-shadow(0 16px 40px rgba(201,162,39,.30))}
+.cookie-mark{width:112px;height:112px;margin:0 auto 20px;display:block;animation:bob 5.5s ease-in-out infinite;filter:drop-shadow(0 16px 40px rgba(166,124,31,.28))}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-11px) rotate(3deg)}}
 h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:900;letter-spacing:-1px}
 .lede{margin:0 auto 26px;max-width:600px;color:var(--ink-2);font-size:clamp(15px,2.4vw,17px)}
@@ -87,7 +134,7 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
   display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
   background:var(--line);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
 }
-.stat{background:rgba(8,7,4,.72);padding:18px 10px}
+.stat{background:rgba(6,5,3,.74);padding:18px 10px}
 .stat b{display:block;font-size:clamp(17px,3.4vw,24px);font-weight:800;letter-spacing:-.5px}
 .stat span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-3)}
 @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
@@ -100,7 +147,7 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
   /* The page is long; keep the tabs reachable instead of making people scroll back up. */
   position:sticky;top:70px;z-index:30;
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  background:rgba(9,8,5,.93);
+  background:rgba(6,5,3,.94);
 }
 .tab{
   padding:14px 8px;border-radius:12px;font-weight:700;font-size:clamp(13px,2.6vw,17px);
@@ -115,8 +162,12 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 
 /* ---------------- 卡片 ---------------- */
 .card{
-  background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);
-  padding:24px;box-shadow:var(--shadow);
+  background:
+    linear-gradient(180deg, rgba(255,250,235,.035), transparent 38%),
+    var(--surf);
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:26px;
+  box-shadow:inset 0 1px 0 rgba(255,250,235,.07), var(--shadow);
 }
 .card + .card{margin-top:16px}
 .card h3{margin:0 0 4px;font-size:18px;font-weight:800}
@@ -127,8 +178,12 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 /* ---------------- 预售档位 ---------------- */
 .tier{
   position:relative;overflow:hidden;
-  background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;
-  transition:.2s all;
+  background:
+    linear-gradient(180deg, rgba(255,250,235,.045), transparent 42%),
+    var(--surf);
+  border:1px solid var(--line);border-radius:var(--r-lg);padding:26px;
+  box-shadow:inset 0 1px 0 rgba(255,250,235,.08), var(--shadow);
+  transition:transform .5s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .4s;
 }
 .tier::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--grad);opacity:.75}
 .tier:hover{border-color:var(--line-hot);transform:translateY(-3px);box-shadow:var(--glow)}
@@ -222,7 +277,7 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 .gen.on{opacity:1;border-color:var(--line-hot);background:var(--grad-soft);box-shadow:var(--glow)}
 .gen .disc{
   width:46px;height:46px;margin:0 auto 10px;border-radius:50%;
-  background:radial-gradient(circle at 34% 30%,#e8d296,#8a6f2a 74%);
+  background:radial-gradient(circle at 34% 30%,#d8bc7a,#5c4712 76%);
   display:grid;place-items:center;font-size:18px;font-weight:900;color:#120f06;
 }
 .gen b{display:block;font-size:19px;font-weight:900}
@@ -233,8 +288,12 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 @media(max-width:760px){.eco{grid-template-columns:1fr}}
 .eco-card{
   position:relative;overflow:hidden;
-  background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);padding:26px 22px;
-  transition:.22s all;
+  background:
+    linear-gradient(180deg, rgba(255,250,235,.035), transparent 40%),
+    var(--surf);
+  border:1px solid var(--line);border-radius:var(--r-lg);padding:28px 24px;
+  box-shadow:inset 0 1px 0 rgba(255,250,235,.06), var(--shadow);
+  transition:transform .5s cubic-bezier(.16,1,.3,1), border-color .3s, box-shadow .4s;
 }
 .eco-card:hover{transform:translateY(-4px);border-color:var(--line-hot);box-shadow:var(--glow)}
 .eco-card .ico{font-size:34px;line-height:1;margin-bottom:14px;display:block}
@@ -257,7 +316,8 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 
 /* ---------------- 区块标题 ---------------- */
 .sec{margin-top:64px}
-.sec-h{text-align:center;margin-bottom:26px}
+.sec-h{text-align:center;margin-bottom:30px}
+.sec-mq{margin-top:36px}
 .sec-h h2{margin:0 0 8px;font-size:clamp(24px,4.6vw,34px);font-weight:900;letter-spacing:-.8px}
 .sec-h p{margin:0;color:var(--ink-3);font-size:14px}
 
@@ -271,12 +331,53 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
 #toast{
   position:fixed;left:50%;bottom:26px;transform:translate(-50%,26px);
   padding:13px 22px;border-radius:13px;font-size:13.5px;font-weight:600;
-  background:rgba(9,8,5,.97);border:1px solid var(--line-hot);box-shadow:var(--shadow);
+  background:rgba(6,5,3,.97);border:1px solid var(--line-hot);box-shadow:var(--shadow);
   opacity:0;pointer-events:none;transition:.28s all;z-index:99;max-width:88vw;text-align:center;
 }
 #toast.show{opacity:1;transform:translate(-50%,0)}
 
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---------------- 滚动入场 ---------------- */
+/* Content is visible by default and only hidden once JS has proved it can reveal it again.
+   A blocked script or a throttled observer then costs an animation, never the page. */
+html.reveal-ready .reveal{
+  opacity:0;transform:translateY(22px);
+  transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1);
+}
+html.reveal-ready .reveal.in{opacity:1;transform:none}
+html.reveal-ready .reveal[data-d="1"]{transition-delay:.08s}
+html.reveal-ready .reveal[data-d="2"]{transition-delay:.16s}
+html.reveal-ready .reveal[data-d="3"]{transition-delay:.24s}
+
+/* ---------------- 合作 / 集成滚动墙 ---------------- */
+.marquee{
+  position:relative;overflow:hidden;padding:6px 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+}
+.mq-track{display:flex;width:max-content;gap:14px;will-change:transform}
+.mq-a{animation:mqL 46s linear infinite}
+.mq-b{animation:mqR 58s linear infinite}
+.marquee:hover .mq-track{animation-play-state:paused}
+@keyframes mqL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes mqR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+.chip{
+  display:flex;align-items:center;gap:10px;flex:none;
+  padding:13px 22px;border-radius:14px;white-space:nowrap;
+  background:linear-gradient(180deg,rgba(255,250,235,.05),transparent 60%),var(--surf);
+  border:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(255,250,235,.05);
+  font-size:13.5px;font-weight:700;color:var(--ink-2);
+  transition:color .3s,border-color .3s,transform .4s cubic-bezier(.16,1,.3,1);
+}
+.chip:hover{color:var(--ink);border-color:var(--line-hot);transform:translateY(-2px)}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.7;flex:none}
+.chip .tagmini{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);opacity:.7}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html.reveal-ready .reveal{opacity:1!important;transform:none!important}
+  .mq-track{animation:none!important}
+}
 </style>
 </head>
 <body>
@@ -285,7 +386,7 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <radialGradient id="cg" cx="34%" cy="28%">
-      <stop offset="0" stop-color="#f0dda6"/><stop offset="52%" stop-color="#c9a227"/><stop offset="100%" stop-color="#7a601f"/>
+      <stop offset="0" stop-color="#e2caa0"/><stop offset="50%" stop-color="#a67c1f"/><stop offset="100%" stop-color="#5c4712"/>
     </radialGradient>
     <symbol id="cookie" viewBox="0 0 64 64">
       <circle cx="32" cy="32" r="29" fill="url(#cg)"/>
@@ -315,6 +416,7 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
     <canvas id="embers"></canvas>
     <div class="hero-in">
       <svg class="cookie-mark"><use href="#cookie"/></svg>
+      <span class="eyebrow">Burn to Earn · BNB Chain</span>
       <h1>咬一口 <span class="grad-text">Cookie</span><br>把筹码带回家</h1>
       <p class="lede">预售入场,上线即得 <b>1.5 倍</b> 筹码;销毁挖矿,烧多少送双倍额度,每天零点准时释放。</p>
       <div class="cta">
@@ -329,12 +431,18 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
         <span class="pill">三代邀请奖励</span>
       </div>
       <div class="stats">
-        <div class="stat"><b id="sPool">—</b><span>矿池余额</span></div>
-        <div class="stat"><b id="sBurned">—</b><span>累计销毁</span></div>
-        <div class="stat"><b id="sQuota">—</b><span>累计挖矿额度</span></div>
-        <div class="stat"><b id="sUsers">—</b><span>参与人数</span></div>
+        <div class="stat"><b class="num" id="sPool">—</b><span>矿池余额</span></div>
+        <div class="stat"><b class="num" id="sBurned">—</b><span>累计销毁</span></div>
+        <div class="stat"><b class="num" id="sQuota">—</b><span>累计挖矿额度</span></div>
+        <div class="stat"><b class="num" id="sUsers">—</b><span>参与人数</span></div>
       </div>
     </div>
+  </section>
+
+  <!-- ================= 生态滚动墙 ================= -->
+  <section class="sec-mq reveal">
+    <div class="marquee"><div class="mq-track mq-a" id="mqA"></div></div>
+    <div class="marquee" style="margin-top:14px"><div class="mq-track mq-b" id="mqB"></div></div>
   </section>
 
   <!-- ================= 标签页 ================= -->
@@ -348,7 +456,7 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
   <!-- ---------- 预售 ---------- -->
   <section class="panel on" id="p-presale">
     <div class="grid2">
-      <div class="tier">
+      <div class="tier reveal">
         <span class="badge" id="t1Badge">团队长优选</span>
         <div class="price" id="t1Price">1<small>BNB</small></div>
         <div class="name" id="t1Name">社区额度</div>
@@ -366,7 +474,7 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
         </div>
         <button class="btn btn-hot btn-lg" id="buyCommunityBtn">认购社区额度</button>
       </div>
-      <div class="tier">
+      <div class="tier reveal" data-d="1">
         <span class="badge" id="t2Badge">人人可参与</span>
         <div class="price" id="t2Price">0.2<small>BNB</small></div>
         <div class="name" id="t2Name">散户额度</div>
@@ -386,7 +494,7 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
       </div>
     </div>
 
-    <div class="card" style="margin-top:16px">
+    <div class="card reveal" style="margin-top:16px">
       <h3>释放规则</h3>
       <p class="sub">两个档位权益一致,只是入场金额不同</p>
       <div class="timeline">
@@ -514,7 +622,9 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
 
   <!-- ================= 生态 ================= -->
   <section class="sec">
-    <div class="sec-h">
+    <div class="sec-h reveal">
+      <span class="eyebrow">Ecosystem</span>
+      <div class="rule"></div>
       <h2>饼干参与<span class="grad-text">应用</span></h2>
       <p>不止一个代币,而是一整条能玩的赛道</p>
     </div>
@@ -523,11 +633,13 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
 
   <!-- ================= 官方链接 ================= -->
   <section class="sec">
-    <div class="sec-h">
+    <div class="sec-h reveal">
+      <span class="eyebrow">Official</span>
+      <div class="rule"></div>
       <h2>官方<span class="grad-text">链接</span></h2>
       <p>只认下面这几个入口,其余一律是假的</p>
     </div>
-    <div class="links" id="socialLinks"></div>
+    <div class="links reveal" id="socialLinks"></div>
   </section>
 
 </main>
