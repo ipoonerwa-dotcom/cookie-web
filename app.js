@@ -12,6 +12,7 @@
     claim: "0x4e71d92d",          // claim()
     claimOwed: "0xf2652d9c",      // claimOwed()
     userInfo: "0x1959a002",       // userInfo(address)
+    bindReferrer: "0x04f618cb",   // bindReferrer(address)
     stats: "0xd80528ae",          // stats()
     minBurn: "0xa47c9a2d",        // minBurn()
     dailyRateBps: "0x812667d7",   // dailyRateBps()
@@ -95,7 +96,7 @@
     // 预售
     tCommunity: 0n, tRetail: 0n, saleOpen: false, claiming: false,
     bonusBps: 15000n, instBps: 5000n, rate: 0n, maxTickets: 10n, ticketsLeft: 10n,
-    pClaimable: 0n, pAlloc: 0n, pClaimed: 0n
+    pClaimable: 0n, pAlloc: 0n, pClaimed: 0n, boundRef: null
   };
 
   function toast(msg, ms) {
@@ -115,6 +116,10 @@
       .then(function () {
         $("connectBtn").textContent = short(account);
         $("refLink").value = refLinkFor(account);
+        captureRef();
+        var seeded = pendingRef();
+        if (isAddr(seeded) && !$("refInput").value) $("refInput").value = seeded;
+        renderRefState();
         refresh();
       })
       .catch(function (e) { toast(e.message || t("toast.rejected")); });
@@ -175,6 +180,8 @@
       var quota = toBig(w[0]), unlocked = toBig(w[1]), claimable = toBig(w[2]),
           burned = toBig(w[3]), claimed = toBig(w[4]), refEarned = toBig(w[5]),
           owed = toBig(w[6]), perDay = toBig(w[7]), levels = Number(toBig(w[9]));
+      st.boundRef = w.length > 10 ? "0x" + w[10].slice(24) : null;
+      renderRefState();
 
       $("claimable").textContent = fmt(claimable);
       $("claimable2").textContent = fmt(claimable);
@@ -415,9 +422,14 @@
     if (amt <= 0n) { toast(t("toast.enterAmount")); return; }
     if (st.minBurn > 0n && amt < st.minBurn) { toast(t("toast.belowMin") + fmt(st.minBurn)); return; }
     if (amt > st.balance) { toast(t("toast.insufficient")); return; }
-    var ref = ($("refInput").value || "").trim();
-    if (ref && !/^0x[0-9a-fA-F]{40}$/.test(ref)) { toast(t("toast.badRef")); return; }
-    if (!ref) ref = ZERO;
+    // Already bound on chain? The contract ignores it anyway -- send zero and skip the write.
+    var ref = ZERO;
+    if (!st.boundRef || st.boundRef === ZERO) {
+      var typed = ($("refInput").value || "").trim();
+      var candidate = typed || pendingRef() || "";
+      if (typed && !isAddr(typed)) { toast(t("toast.badRef")); return; }
+      if (isAddr(candidate)) ref = candidate;
+    }
 
     tx("burnBtn", "销毁中…", function () {
       return send(C.mining, SEL.burn + encUint(amt) + encAddr(ref));
@@ -464,6 +476,77 @@
     $("cM").textContent = String(Math.floor((left % 3600) / 60)).padStart(2, "0");
     $("cS").textContent = String(left % 60).padStart(2, "0");
     if (left <= 1) setTimeout(refresh, 4000);
+  }
+
+  /* ---------------- 推荐关系 ---------------- */
+  // Kept per wallet: switching accounts must not inherit somebody else's upline. The pending
+  // slot holds a referrer captured before a wallet was connected at all.
+  var REF_PENDING = "cookie_ref_pending";
+  function refKey(addr) { return "cookie_ref_" + String(addr).toLowerCase(); }
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var isAddr = function (a) { return /^0x[0-9a-fA-F]{40}$/.test(a || ""); };
+
+  /**
+   * Reads ?ref= once and remembers it, then strips it from the address bar.
+   *
+   * Leaving it there is the trap: someone who arrived through an invite and then wants to
+   * share their OWN link copies the URL and hands out their inviter's instead.
+   */
+  function captureRef() {
+    var q = new URLSearchParams(location.search).get("ref");
+    if (isAddr(q)) {
+      lsSet(REF_PENDING, q);
+      if (account && q.toLowerCase() !== account.toLowerCase()) lsSet(refKey(account), q);
+    }
+    if (q !== null) {
+      try {
+        var u = new URL(location.href);
+        u.searchParams.delete("ref");
+        history.replaceState({}, "", u.pathname + u.search + u.hash);
+      } catch (e) { /* older webviews -- harmless */ }
+    }
+  }
+
+  /** The referrer this wallet should use: its own stored one, else whatever arrived pending. */
+  function pendingRef() {
+    if (!account) return lsGet(REF_PENDING);
+    var mine = lsGet(refKey(account));
+    if (mine) return mine;
+    var p = lsGet(REF_PENDING);
+    if (p && p.toLowerCase() !== account.toLowerCase()) { lsSet(refKey(account), p); return p; }
+    return null;
+  }
+
+  function renderRefState() {
+    var card = $("refStateCard");
+    if (!card) return;
+    var bound = st.boundRef && st.boundRef !== ZERO ? st.boundRef : null;
+    var pend = bound ? null : pendingRef();
+
+    if (!bound && !pend) { card.style.display = "none"; return; }
+    card.style.display = "";
+
+    $("refAddr").textContent = short(bound || pend);
+    $("refTag").textContent = t(bound ? "inv.locked" : "inv.pending");
+    $("refTag").classList.toggle("locked", !!bound);
+    $("refStateSub").textContent = t(bound ? "inv.uplineSubLocked" : "inv.uplineSub");
+    $("bindBtn").style.display = bound ? "none" : "";
+    $("refHint").style.display = bound ? "none" : "";
+    // The manual field is only useful while nothing has been captured or bound.
+    var wrap = $("refInput") && $("refInput").parentElement;
+    if (wrap) wrap.style.opacity = bound ? ".5" : "1";
+  }
+
+  function doBind() {
+    if (!C.mining) { toast(t("toast.notDeployed")); return; }
+    var ref = pendingRef();
+    if (!isAddr(ref)) return;
+    tx("bindBtn", t("inv.binding"), function () {
+      return send(C.mining, SEL.bindReferrer + encAddr(ref));
+    }, t("inv.bindOk"), t("inv.bindFail"));
   }
 
   /* ---------------- 推广链接 ---------------- */
@@ -677,7 +760,7 @@
     var ul = document.querySelectorAll("#lang li");
     for (var j = 0; j < ul.length; j++) ul[j].classList.toggle("on", ul[j].dataset.lang === lang);
     // Anything drawn from data has to be rebuilt, not just relabelled.
-    renderTiers(); renderSaleState(); updateTag(); renderEco(); renderSocial();
+    renderTiers(); renderSaleState(); updateTag(); renderEco(); renderSocial(); renderRefState();
     syncTitle();
   }
 
@@ -825,8 +908,10 @@
     initReveal();
     tick(); setInterval(tick, 1000);
 
-    var ref = new URLSearchParams(location.search).get("ref");
-    if (ref && /^0x[0-9a-fA-F]{40}$/.test(ref)) $("refInput").value = ref;
+    captureRef();
+    var seeded = pendingRef();
+    if (isAddr(seeded)) $("refInput").value = seeded;
+    renderRefState();
 
     $("connectBtn").onclick = connect;
     $("approveBtn").onclick = doApprove;
@@ -841,6 +926,7 @@
     $("maxBtn").onclick = function () {
       if (st.balance > 0n) { $("burnAmt").value = String(toNum(st.balance)); updatePreview(); }
     };
+    $("bindBtn").onclick = doBind;
     $("copyBtn").onclick = function () {
       var v = $("refLink").value;
       if (!v) { toast(t("toast.connectFirst")); return; }
