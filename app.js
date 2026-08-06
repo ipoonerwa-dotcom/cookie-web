@@ -522,23 +522,29 @@
 
   /* ---------------- 滚动墙 ---------------- */
   function renderMarquee() {
-    var list = C.marquee || [];
-    if (!list.length) return;
-    // Each track carries the list twice so the -50% translate lands on an identical frame
-    // and the loop has no visible seam.
+    var list = (C.partners || []).filter(function (p) { return p && p.name; });
+    var sec = $("partnerSec");
+    // An empty wall is better than a padded one: nothing here should be filler.
+    if (!list.length) { if (sec) sec.style.display = "none"; return; }
+
+    // Too few entries and the track is shorter than the viewport, so the -50% loop shows a
+    // gap. Repeat until it is comfortably wider, then duplicate once for the seamless wrap.
+    var base = list.slice();
+    while (base.length < 8) base = base.concat(list);
+
     function build(el, items) {
       el.innerHTML = "";
-      var twice = items.concat(items);
-      twice.forEach(function (m) {
+      items.concat(items).forEach(function (m) {
         var d = document.createElement("div");
         d.className = "chip";
-        d.innerHTML = '<span class="dot"></span><span>' + esc(m.name || "") + "</span>" +
-          (m.tag ? '<span class="tagmini">' + esc(m.tag) + "</span>" : "");
+        d.innerHTML = m.logo
+          ? '<img src="' + esc(m.logo) + '" alt="' + esc(m.name) + '" loading="lazy">'
+          : '<span class="dot"></span><span>' + esc(m.name) + "</span>";
         el.appendChild(d);
       });
     }
-    build($("mqA"), list);
-    build($("mqB"), list.slice().reverse());
+    build($("mqA"), base);
+    build($("mqB"), base.slice().reverse());
   }
 
   /* ---------------- 滚动入场 ---------------- */
