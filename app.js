@@ -536,18 +536,18 @@
     }
     function spawn() {
       return { x: Math.random() * W, y: H + 10, vy: -(0.25 + Math.random() * 0.6),
-               vx: (Math.random() - 0.5) * 0.3, r: 0.7 + Math.random() * 1.7, a: 0.45 + Math.random() * 0.55 };
+               vx: (Math.random() - 0.5) * 0.3, r: 0.5 + Math.random() * 1.1, a: 0.45 + Math.random() * 0.55 };
     }
     function draw() {
       ctx.clearRect(0, 0, W, H);
-      if (ps.length < 30 && Math.random() < 0.4) ps.push(spawn());
+      if (ps.length < 18 && Math.random() < 0.26) ps.push(spawn());
       for (var i = ps.length - 1; i >= 0; i--) {
         var p = ps[i];
         p.x += p.vx; p.y += p.vy; p.a -= 0.0032;
         if (p.a <= 0 || p.y < -10) { ps.splice(i, 1); continue; }
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, 6.283);
-        ctx.fillStyle = "rgba(249,140,60," + p.a.toFixed(3) + ")";
+        ctx.fillStyle = "rgba(214,182,102," + (p.a * 0.7).toFixed(3) + ")";
         ctx.fill();
       }
       raf = requestAnimationFrame(draw);

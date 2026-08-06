@@ -7,27 +7,33 @@
 <meta name="description" content="Cookie —— 销毁即挖矿,预售即入场。">
 <style>
 :root{
-  --red:#ef4444; --red-deep:#b91c1c; --orange:#f97316; --gold:#fbbf24;
-  --grad:linear-gradient(96deg,#dc2626 0%,#f97316 52%,#fbbf24 100%);
-  --grad-soft:linear-gradient(96deg,rgba(220,38,38,.22),rgba(249,115,22,.18),rgba(251,191,36,.14));
-  --ink:#fff;
-  --ink-2:rgba(255,255,255,.62);
-  --ink-3:rgba(255,255,255,.38);
-  --surf:rgba(255,255,255,.045);
-  --surf-2:rgba(255,255,255,.075);
-  --line:rgba(255,255,255,.10);
-  --line-hot:rgba(249,115,22,.34);
+  /* Muted gold, not yellow: saturation is what makes metallics read as cheap. */
+  --gold-dim:#8a6f2a;
+  --gold:#c9a227;
+  --gold-lit:#e8d296;
+  --gold-pale:#f3ead0;
+  /* A brushed-metal sweep rather than a rainbow: one hue, three lightnesses. */
+  --grad:linear-gradient(100deg,#9c7d24 0%,#e8d296 46%,#c9a227 100%);
+  --grad-soft:linear-gradient(100deg,rgba(201,162,39,.13),rgba(232,210,150,.08));
+  --ink:#f6f3ec;
+  --ink-2:rgba(246,243,236,.60);
+  --ink-3:rgba(246,243,236,.52);
+  --surf:rgba(255,252,240,.035);
+  --surf-2:rgba(255,252,240,.062);
+  --line:rgba(232,210,150,.11);
+  --line-hot:rgba(201,162,39,.38);
   --r:16px; --r-lg:22px;
-  --shadow:0 18px 44px rgba(0,0,0,.5);
-  --glow:0 0 0 1px rgba(249,115,22,.28), 0 14px 40px rgba(220,38,38,.22);
+  --shadow:0 18px 44px rgba(0,0,0,.62);
+  /* Restraint: a thin rim instead of a coloured halo. */
+  --glow:0 0 0 1px rgba(201,162,39,.34), 0 16px 42px rgba(0,0,0,.5);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   min-height:100dvh;
   background:
-    radial-gradient(1100px 620px at 50% -8%, rgba(220,38,38,.20), transparent 62%),
-    radial-gradient(circle at 50% 0%, #2a0f0f 0%, #150606 46%, #050202 100%);
+    radial-gradient(1200px 680px at 50% -10%, rgba(201,162,39,.10), transparent 64%),
+    radial-gradient(circle at 50% 0%, #121008 0%, #0a0906 44%, #030302 100%);
   background-attachment:fixed;
   color:var(--ink);
   font:400 15px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
@@ -45,12 +51,12 @@ button:disabled{cursor:not-allowed;opacity:.42}
 header{
   position:sticky;top:0;z-index:40;
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  background:rgba(10,4,4,.72);
+  background:rgba(6,5,3,.78);
   border-bottom:1px solid var(--line);
 }
 .bar{display:flex;align-items:center;gap:12px;height:62px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:.2px}
-.brand svg{width:32px;height:32px;flex:none;filter:drop-shadow(0 4px 12px rgba(249,115,22,.45))}
+.brand svg{width:32px;height:32px;flex:none;filter:drop-shadow(0 4px 12px rgba(201,162,39,.35))}
 .spacer{flex:1}
 .btn{
   border-radius:12px;padding:10px 18px;font-weight:700;font-size:14px;
@@ -58,15 +64,15 @@ header{
   transition:.18s transform,.18s box-shadow,.18s background;
 }
 .btn:hover:not(:disabled){transform:translateY(-1px);background:rgba(255,255,255,.11)}
-.btn-hot{background:var(--grad);border:0;color:#1a0505;box-shadow:0 8px 24px rgba(220,38,38,.34)}
-.btn-hot:hover:not(:disabled){box-shadow:0 12px 32px rgba(249,115,22,.44)}
+.btn-hot{background:var(--grad);border:0;color:#120f06;text-shadow:0 1px 0 rgba(255,255,255,.18);box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.btn-hot:hover:not(:disabled){box-shadow:0 12px 30px rgba(201,162,39,.26)}
 .btn-lg{width:100%;padding:15px;font-size:16px;border-radius:14px}
 
 /* ---------------- Hero ---------------- */
 .hero{position:relative;padding:56px 0 40px;text-align:center;overflow:hidden}
 .hero canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.7}
 .hero-in{position:relative;z-index:1}
-.cookie-mark{width:112px;height:112px;margin:0 auto 20px;display:block;animation:bob 5.5s ease-in-out infinite;filter:drop-shadow(0 16px 40px rgba(249,115,22,.42))}
+.cookie-mark{width:112px;height:112px;margin:0 auto 20px;display:block;animation:bob 5.5s ease-in-out infinite;filter:drop-shadow(0 16px 40px rgba(201,162,39,.30))}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-11px) rotate(3deg)}}
 h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:900;letter-spacing:-1px}
 .lede{margin:0 auto 26px;max-width:600px;color:var(--ink-2);font-size:clamp(15px,2.4vw,17px)}
@@ -75,13 +81,13 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 .pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
 .pill{
   font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;
-  background:var(--grad-soft);border:1px solid var(--line-hot);color:#fde68a;
+  background:var(--grad-soft);border:1px solid var(--line-hot);color:var(--gold-lit);
 }
 .stats{
   display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
   background:var(--line);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
 }
-.stat{background:rgba(12,5,5,.72);padding:18px 10px}
+.stat{background:rgba(8,7,4,.72);padding:18px 10px}
 .stat b{display:block;font-size:clamp(17px,3.4vw,24px);font-weight:800;letter-spacing:-.5px}
 .stat span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-3)}
 @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
@@ -94,7 +100,7 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
   /* The page is long; keep the tabs reachable instead of making people scroll back up. */
   position:sticky;top:70px;z-index:30;
   backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  background:rgba(18,7,7,.92);
+  background:rgba(9,8,5,.93);
 }
 .tab{
   padding:14px 8px;border-radius:12px;font-weight:700;font-size:clamp(13px,2.6vw,17px);
@@ -102,7 +108,7 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
   transition:.18s all;white-space:nowrap;
 }
 .tab:hover{background:rgba(255,255,255,.1);color:var(--ink)}
-.tab.on{background:#fff;color:#c2410c;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.tab.on{background:var(--grad);color:#120f06;box-shadow:0 6px 20px rgba(0,0,0,.5)}
 .panel{display:none;animation:fade .28s ease}
 .panel.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -128,7 +134,7 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 .tier:hover{border-color:var(--line-hot);transform:translateY(-3px);box-shadow:var(--glow)}
 .tier .badge{
   display:inline-block;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;
-  background:var(--grad-soft);border:1px solid var(--line-hot);color:#fde68a;margin-bottom:12px;
+  background:var(--grad-soft);border:1px solid var(--line-hot);color:var(--gold-lit);margin-bottom:12px;
 }
 .tier .price{font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1}
 .tier .price small{font-size:16px;font-weight:700;color:var(--ink-2);margin-left:5px}
@@ -144,7 +150,7 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 .step{display:flex;gap:13px;align-items:flex-start}
 .step .dot{
   flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
-  background:var(--grad);color:#1a0505;font-weight:900;font-size:13px;
+  background:var(--grad);color:#120f06;font-weight:900;font-size:13px;
 }
 .step .txt{font-size:13.5px;color:var(--ink-2);padding-top:4px}
 .step .txt b{color:var(--ink)}
@@ -216,8 +222,8 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 .gen.on{opacity:1;border-color:var(--line-hot);background:var(--grad-soft);box-shadow:var(--glow)}
 .gen .disc{
   width:46px;height:46px;margin:0 auto 10px;border-radius:50%;
-  background:radial-gradient(circle at 34% 30%,#fbbf24,#c2410c 72%);
-  display:grid;place-items:center;font-size:18px;font-weight:900;color:#2a0a0a;
+  background:radial-gradient(circle at 34% 30%,#e8d296,#8a6f2a 74%);
+  display:grid;place-items:center;font-size:18px;font-weight:900;color:#120f06;
 }
 .gen b{display:block;font-size:19px;font-weight:900}
 .gen span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-3)}
@@ -265,7 +271,7 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
 #toast{
   position:fixed;left:50%;bottom:26px;transform:translate(-50%,26px);
   padding:13px 22px;border-radius:13px;font-size:13.5px;font-weight:600;
-  background:rgba(20,7,7,.96);border:1px solid var(--line-hot);box-shadow:var(--shadow);
+  background:rgba(9,8,5,.97);border:1px solid var(--line-hot);box-shadow:var(--shadow);
   opacity:0;pointer-events:none;transition:.28s all;z-index:99;max-width:88vw;text-align:center;
 }
 #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -279,17 +285,17 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <radialGradient id="cg" cx="34%" cy="28%">
-      <stop offset="0" stop-color="#fcd34d"/><stop offset="55%" stop-color="#e08c2e"/><stop offset="100%" stop-color="#a3410f"/>
+      <stop offset="0" stop-color="#f0dda6"/><stop offset="52%" stop-color="#c9a227"/><stop offset="100%" stop-color="#7a601f"/>
     </radialGradient>
     <symbol id="cookie" viewBox="0 0 64 64">
       <circle cx="32" cy="32" r="29" fill="url(#cg)"/>
-      <circle cx="32" cy="32" r="29" fill="none" stroke="rgba(120,40,10,.5)" stroke-width="2"/>
-      <g fill="#4a2109">
+      <circle cx="32" cy="32" r="29" fill="none" stroke="rgba(60,47,14,.55)" stroke-width="2"/>
+      <g fill="#2b2109">
         <circle cx="22" cy="23" r="4.2"/><circle cx="41" cy="21" r="3.4"/>
         <circle cx="45" cy="37" r="4"/><circle cx="27" cy="43" r="3.6"/>
         <circle cx="34" cy="32" r="2.6"/><circle cx="16" cy="35" r="2.4"/>
       </g>
-      <path d="M14 20a26 26 0 0 1 15-12" fill="none" stroke="rgba(255,240,200,.4)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M14 20a26 26 0 0 1 15-12" fill="none" stroke="rgba(255,246,214,.34)" stroke-width="3" stroke-linecap="round"/>
     </symbol>
   </defs>
 </svg>
@@ -312,8 +318,8 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
       <h1>咬一口 <span class="grad-text">Cookie</span><br>把筹码带回家</h1>
       <p class="lede">预售入场,上线即得 <b>1.5 倍</b> 筹码;销毁挖矿,烧多少送双倍额度,每天零点准时释放。</p>
       <div class="cta">
-        <button class="btn btn-hot" data-go="presale">🍪 参与预售</button>
-        <button class="btn" data-go="mine">🔥 销毁挖矿</button>
+        <button class="btn btn-hot" data-go="presale">参与预售</button>
+        <button class="btn" data-go="mine">销毁挖矿</button>
       </div>
       <div class="pills">
         <span class="pill">预售 1.5× 筹码</span>
@@ -347,10 +353,10 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
         <div class="price" id="t1Price">1<small>BNB</small></div>
         <div class="name" id="t1Name">社区额度</div>
         <ul>
-          <li><i>◆</i><span>上线即得 <b id="t1Chips">对应数量 ×1.5</b> 筹码</span></li>
-          <li><i>◆</i><span>先释放 <b id="t1Instant">50%</b>,当场可领</span></li>
-          <li><i>◆</i><span>剩余每日 <b id="t1Daily">2%</b> 释放</span></li>
-          <li><i>◆</i><span>每地址最多 <b id="t1Max">10</b> 份</span></li>
+          <li><i>◇</i><span>上线即得 <b id="t1Chips">对应数量 ×1.5</b> 筹码</span></li>
+          <li><i>◇</i><span>先释放 <b id="t1Instant">50%</b>,当场可领</span></li>
+          <li><i>◇</i><span>剩余每日 <b id="t1Daily">2%</b> 释放</span></li>
+          <li><i>◇</i><span>每地址最多 <b id="t1Max">10</b> 份</span></li>
         </ul>
         <div class="qty">
           <button class="qbtn" data-step="1:-1" aria-label="减少">−</button>
@@ -365,10 +371,10 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
         <div class="price" id="t2Price">0.2<small>BNB</small></div>
         <div class="name" id="t2Name">散户额度</div>
         <ul>
-          <li><i>◆</i><span>上线即得 <b id="t2Chips">对应数量 ×1.5</b> 筹码</span></li>
-          <li><i>◆</i><span>先释放 <b id="t2Instant">50%</b>,当场可领</span></li>
-          <li><i>◆</i><span>剩余每日 <b id="t2Daily">2%</b> 释放</span></li>
-          <li><i>◆</i><span>每地址最多 <b id="t2Max">10</b> 份,散户友好</span></li>
+          <li><i>◇</i><span>上线即得 <b id="t2Chips">对应数量 ×1.5</b> 筹码</span></li>
+          <li><i>◇</i><span>先释放 <b id="t2Instant">50%</b>,当场可领</span></li>
+          <li><i>◇</i><span>剩余每日 <b id="t2Daily">2%</b> 释放</span></li>
+          <li><i>◇</i><span>每地址最多 <b id="t2Max">10</b> 份,散户友好</span></li>
         </ul>
         <div class="qty">
           <button class="qbtn" data-step="2:-1" aria-label="减少">−</button>
@@ -434,7 +440,7 @@ footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin
         </div>
         <div class="row" style="margin-top:16px">
           <button class="btn" id="approveBtn">授权</button>
-          <button class="btn btn-hot" id="burnBtn">🔥 确认销毁</button>
+          <button class="btn btn-hot" id="burnBtn">确认销毁</button>
         </div>
       </div>
 
