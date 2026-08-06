@@ -31,11 +31,11 @@ window.COOKIE_CONFIG = {
     { key: "community", label: "社区额度", bnb: 1,   slots: 100,  badge: "团队长优选" },
     { key: "retail",    label: "散户额度", bnb: 0.2, slots: 2000, badge: "人人可参与" }
   ],
-  presaleRate: 10000,              // 1 BNB = 多少枚(1.5 倍之前的面值)
-  presaleBonus: 1.5,               // 上线获得对应数量的几倍筹码 → 实得 15000/BNB
-  presaleInstantPct: 50,           // 上线先释放百分之多少 → 7500/BNB
-  presaleDailyPct: 2,              // 之后每日释放总额的百分比 → 300/BNB/天,25 天放完
-  presaleHardCap: 2000,            // 募集上限(BNB)
+  presaleRate: 40000,              // 1 BNB = 多少枚(1.5 倍之前的面值)
+  presaleBonus: 1.5,               // 上线获得对应数量的几倍筹码 → 实得 60000/BNB
+  presaleInstantPct: 50,           // 上线先释放百分之多少 → 30000/BNB
+  presaleDailyPct: 2,              // 之后每日释放总额的百分比 → 1200/BNB/天,25 天放完
+  presaleHardCap: 500,             // 募集上限(BNB)= 100×1 + 2000×0.2
   presaleTreasury: "0xD25d311Ee40F5d6B221748a78f04C6B0A6AEB5ad",  // 收款地址(部署后用 setTreasury 写进合约)
   presaleSweepMinutes: 3,          // 自动归集间隔,合约里可改(setSweep,下限 60 秒)
 

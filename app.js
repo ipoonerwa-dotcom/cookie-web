@@ -22,6 +22,7 @@
     buyerInfo: "0xe2d3f423",      // buyerInfo(address)
     saleInfo: "0x8e3695b8",       // saleInfo()
     instantBps: "0x7d96cd64",     // instantBps()
+    slotInfo: "0x52dec13d",       // slotInfo()
     // 代币
     approve: "0x095ea7b3",        // approve(address,uint256)
     allowance: "0xdd62ed3e",      // allowance(address,address)
@@ -230,6 +231,18 @@
       renderTiers();
       renderSaleState();
     });
+    // Slots left is the number buyers actually care about, and it is only meaningful once
+    // the contract is live -- before that the page shows the configured totals.
+    call(C.presale, SEL.slotInfo).then(function (r) {
+      var w = words(r);
+      if (w.length < 6) return;
+      var put = function (id, v) { var el = $(id); if (el) el.textContent = Number(v).toLocaleString(); };
+      put("t1Slots", toBig(w[2]));
+      put("t2Slots", toBig(w[5]));
+      var lab = document.querySelectorAll("[data-slotlabel]");
+      for (var i = 0; i < lab.length; i++) lab[i].textContent = t("tier.left");
+    });
+
     call(C.presale, SEL.instantBps).then(function (r) {
       var v = toBig(words(r)[0]); if (v > 0n) { st.instBps = v; renderTiers(); }
     });
