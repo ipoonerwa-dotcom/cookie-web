@@ -466,23 +466,6 @@
     if (left <= 1) setTimeout(refresh, 4000);
   }
 
-  /* ---------------- 标签页 ---------------- */
-  function initTabs() {
-    var tabs = document.querySelectorAll(".tab");
-    function go(name) {
-      for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle("on", tabs[i].dataset.tab === name);
-      var ps = document.querySelectorAll(".panel");
-      for (var j = 0; j < ps.length; j++) ps[j].classList.toggle("on", ps[j].id === "p-" + name);
-    }
-    for (var i = 0; i < tabs.length; i++) {
-      (function (t) { t.onclick = function () { go(t.dataset.tab); }; })(tabs[i]);
-    }
-    var jumps = document.querySelectorAll("[data-go]");
-    for (var k = 0; k < jumps.length; k++) {
-      (function (b) { b.onclick = function () { location.hash = "#/" + b.dataset.go; }; })(jumps[k]);
-    }
-  }
-
   /* ---------------- 生态 & 官方链接 ---------------- */
   var ICONS = {
     qq: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c3 0 5 2.2 5 5.2 0 .9.4 1.5 1 2.4.9 1.3 1.7 2.6 1.7 4.4 0 1-.4 1.7-1 1.7-.6 0-1-.5-1.4-1.4-.2.9-.7 1.7-1.4 2.3.7.3 1.2.8 1.2 1.3 0 .9-1.8 1.6-4.1 1.6h-.1c-2.3 0-4.1-.7-4.1-1.6 0-.5.5-1 1.2-1.3-.7-.6-1.2-1.4-1.4-2.3-.4.9-.8 1.4-1.4 1.4-.6 0-1-.7-1-1.7 0-1.8.8-3.1 1.7-4.4.6-.9 1-1.5 1-2.4C7 4.2 9 2 12 2z"/></svg>',
@@ -491,10 +474,18 @@
     docs: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h8l6 6v14H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5L13 3.5zM8 12h8v1.6H8V12zm0 3.4h8V17H8v-1.6z"/></svg>'
   };
   var LABELS = { qq: "官方 QQ 群", twitter: "官方推特", telegram: "官方 TG", docs: "白皮书" };
+  var LABELS_EN = { qq: "QQ group", twitter: "Twitter", telegram: "Telegram", docs: "Docs" };
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
 
   function renderEco() {
     var list = C.ecosystem || [];
     var g = $("ecoGrid");
+    if (!g) return;
     g.innerHTML = "";
     list.forEach(function (e) {
       var d = document.createElement("div");
@@ -505,9 +496,12 @@
       g.appendChild(d);
     });
   }
+
   function renderSocial() {
     var s = C.social || {};
     var box = $("socialLinks");
+    if (!box) return;
+    var names = lang === "en" ? LABELS_EN : LABELS;
     box.innerHTML = "";
     ["qq", "twitter", "telegram", "docs"].forEach(function (k) {
       var v = (s[k] || "").trim();
@@ -516,20 +510,15 @@
       var el = document.createElement(isUrl ? "a" : "div");
       el.className = "link";
       if (isUrl) { el.href = v; el.target = "_blank"; el.rel = "noopener"; }
-      el.innerHTML = ICONS[k] + "<span>" + LABELS[k] + (isUrl ? "" : "：" + esc(v)) + "</span>";
+      el.innerHTML = ICONS[k] + "<span>" + names[k] + (isUrl ? "" : "：" + esc(v)) + "</span>";
       box.appendChild(el);
     });
     if (!box.children.length) {
-      box.innerHTML = '<div class="link" style="opacity:.55">官方渠道即将公布</div>';
+      box.innerHTML = '<div class="link" style="opacity:.55">' + t("official.soon") + "</div>";
     }
   }
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
 
-  /* ---------------- 滚动墙 ---------------- */
+  /* ---------------- 合作伙伴滚动墙 ---------------- */
   function renderMarquee() {
     var list = (C.partners || []).filter(function (p) { return p && p.name; });
     var sec = $("partnerSec");
@@ -542,6 +531,7 @@
     while (base.length < 8) base = base.concat(list);
 
     function build(el, items) {
+      if (!el) return;
       el.innerHTML = "";
       items.concat(items).forEach(function (m) {
         var d = document.createElement("div");
@@ -608,7 +598,6 @@
       if (k < 1) requestAnimationFrame(step); else el.textContent = text;
     })(t0);
   }
-
 
   /* ---------------- 中英文 ---------------- */
   var DICT = window.COOKIE_I18N || { zh: {}, en: {} };
