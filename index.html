@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cookie · 预售 & 销毁挖矿</title>
+<meta name="description" content="Cookie —— 销毁即挖矿,预售即入场。">
+<style>
+:root{
+  --red:#ef4444; --red-deep:#b91c1c; --orange:#f97316; --gold:#fbbf24;
+  --grad:linear-gradient(96deg,#dc2626 0%,#f97316 52%,#fbbf24 100%);
+  --grad-soft:linear-gradient(96deg,rgba(220,38,38,.22),rgba(249,115,22,.18),rgba(251,191,36,.14));
+  --ink:#fff;
+  --ink-2:rgba(255,255,255,.62);
+  --ink-3:rgba(255,255,255,.38);
+  --surf:rgba(255,255,255,.045);
+  --surf-2:rgba(255,255,255,.075);
+  --line:rgba(255,255,255,.10);
+  --line-hot:rgba(249,115,22,.34);
+  --r:16px; --r-lg:22px;
+  --shadow:0 18px 44px rgba(0,0,0,.5);
+  --glow:0 0 0 1px rgba(249,115,22,.28), 0 14px 40px rgba(220,38,38,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100dvh;
+  background:
+    radial-gradient(1100px 620px at 50% -8%, rgba(220,38,38,.20), transparent 62%),
+    radial-gradient(circle at 50% 0%, #2a0f0f 0%, #150606 46%, #050202 100%);
+  background-attachment:fixed;
+  color:var(--ink);
+  font:400 15px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+button:disabled{cursor:not-allowed;opacity:.42}
+.wrap{width:min(1080px,100% - 32px);margin-inline:auto}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------------- 顶栏 ---------------- */
+header{
+  position:sticky;top:0;z-index:40;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  background:rgba(10,4,4,.72);
+  border-bottom:1px solid var(--line);
+}
+.bar{display:flex;align-items:center;gap:12px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:.2px}
+.brand svg{width:32px;height:32px;flex:none;filter:drop-shadow(0 4px 12px rgba(249,115,22,.45))}
+.spacer{flex:1}
+.btn{
+  border-radius:12px;padding:10px 18px;font-weight:700;font-size:14px;
+  background:var(--surf-2);border:1px solid var(--line);
+  transition:.18s transform,.18s box-shadow,.18s background;
+}
+.btn:hover:not(:disabled){transform:translateY(-1px);background:rgba(255,255,255,.11)}
+.btn-hot{background:var(--grad);border:0;color:#1a0505;box-shadow:0 8px 24px rgba(220,38,38,.34)}
+.btn-hot:hover:not(:disabled){box-shadow:0 12px 32px rgba(249,115,22,.44)}
+.btn-lg{width:100%;padding:15px;font-size:16px;border-radius:14px}
+
+/* ---------------- Hero ---------------- */
+.hero{position:relative;padding:56px 0 40px;text-align:center;overflow:hidden}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.7}
+.hero-in{position:relative;z-index:1}
+.cookie-mark{width:112px;height:112px;margin:0 auto 20px;display:block;animation:bob 5.5s ease-in-out infinite;filter:drop-shadow(0 16px 40px rgba(249,115,22,.42))}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-11px) rotate(3deg)}}
+h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:900;letter-spacing:-1px}
+.lede{margin:0 auto 26px;max-width:600px;color:var(--ink-2);font-size:clamp(15px,2.4vw,17px)}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
+.cta .btn{padding:14px 30px;font-size:15px}
+.pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
+.pill{
+  font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;
+  background:var(--grad-soft);border:1px solid var(--line-hot);color:#fde68a;
+}
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
+}
+.stat{background:rgba(12,5,5,.72);padding:18px 10px}
+.stat b{display:block;font-size:clamp(17px,3.4vw,24px);font-weight:800;letter-spacing:-.5px}
+.stat span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-3)}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+/* ---------------- 标签页(参考 2shit 的四联 tab) ---------------- */
+.tabs{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  padding:8px;margin:38px 0 22px;
+  background:var(--surf);border:1px solid var(--line);border-radius:18px;
+  /* The page is long; keep the tabs reachable instead of making people scroll back up. */
+  position:sticky;top:70px;z-index:30;
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  background:rgba(18,7,7,.92);
+}
+.tab{
+  padding:14px 8px;border-radius:12px;font-weight:700;font-size:clamp(13px,2.6vw,17px);
+  color:var(--ink-2);background:rgba(255,255,255,.05);
+  transition:.18s all;white-space:nowrap;
+}
+.tab:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+.tab.on{background:#fff;color:#c2410c;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.panel{display:none;animation:fade .28s ease}
+.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------------- 卡片 ---------------- */
+.card{
+  background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:24px;box-shadow:var(--shadow);
+}
+.card + .card{margin-top:16px}
+.card h3{margin:0 0 4px;font-size:18px;font-weight:800}
+.card .sub{margin:0 0 18px;color:var(--ink-3);font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+/* ---------------- 预售档位 ---------------- */
+.tier{
+  position:relative;overflow:hidden;
+  background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;
+  transition:.2s all;
+}
+.tier::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--grad);opacity:.75}
+.tier:hover{border-color:var(--line-hot);transform:translateY(-3px);box-shadow:var(--glow)}
+.tier .badge{
+  display:inline-block;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;
+  background:var(--grad-soft);border:1px solid var(--line-hot);color:#fde68a;margin-bottom:12px;
+}
+.tier .price{font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1}
+.tier .price small{font-size:16px;font-weight:700;color:var(--ink-2);margin-left:5px}
+.tier .name{margin:6px 0 16px;font-size:15px;font-weight:700;color:var(--ink-2)}
+.tier ul{list-style:none;margin:0 0 20px;padding:0;font-size:13.5px;color:var(--ink-2)}
+.tier li{display:flex;gap:9px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.07)}
+.tier li:last-child{border-bottom:0}
+.tier li i{font-style:normal;color:var(--gold);flex:none}
+.tier li b{color:var(--ink);font-weight:700}
+
+/* ---------------- 释放时间线 ---------------- */
+.timeline{display:grid;gap:12px;margin-top:4px}
+.step{display:flex;gap:13px;align-items:flex-start}
+.step .dot{
+  flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  background:var(--grad);color:#1a0505;font-weight:900;font-size:13px;
+}
+.step .txt{font-size:13.5px;color:var(--ink-2);padding-top:4px}
+.step .txt b{color:var(--ink)}
+
+/* ---------------- 数量选择器 ---------------- */
+.qty{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.qbtn{
+  width:44px;height:44px;flex:none;border-radius:12px;font-size:22px;font-weight:700;line-height:1;
+  -webkit-tap-highlight-color:transparent;
+  background:var(--surf-2);border:1px solid var(--line);display:grid;place-items:center;
+  transition:.15s all;
+}
+.qbtn:hover:not(:disabled){background:rgba(255,255,255,.14);border-color:var(--line-hot)}
+.qin{
+  width:70px;height:44px;text-align:center;border-radius:12px;
+  background:rgba(0,0,0,.34);border:1px solid var(--line);outline:none;
+  font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;
+}
+.qin:focus{border-color:var(--line-hot)}
+.qtot{font-size:12.5px;color:var(--ink-3);margin-left:2px}
+@media(max-width:420px){
+  .qtot{width:100%;margin:2px 0 0 2px}
+  .tabs{top:66px;padding:6px;gap:6px}
+}
+.qtot b{color:var(--gold);font-weight:800;font-variant-numeric:tabular-nums}
+
+/* ---------------- 表单 ---------------- */
+.field{margin-bottom:16px}
+.field label{display:block;margin-bottom:7px;font-size:12.5px;font-weight:700;color:var(--ink-3)}
+.inputwrap{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.34);border:1px solid var(--line);border-radius:13px;padding:4px 4px 4px 15px;transition:.18s border-color}
+.inputwrap:focus-within{border-color:var(--line-hot)}
+.inputwrap input{flex:1;min-width:0;background:none;border:0;outline:none;padding:12px 0;font-size:15px;font-weight:600}
+.inputwrap input::placeholder{color:var(--ink-3);font-weight:400}
+.mini{padding:8px 13px;border-radius:9px;font-size:12.5px;font-weight:700;background:var(--surf-2);border:1px solid var(--line)}
+.mini:hover:not(:disabled){background:rgba(255,255,255,.13)}
+.hint{margin-top:7px;font-size:12px;color:var(--ink-3)}
+.row{display:flex;gap:10px}
+.row .btn{flex:1}
+
+/* ---------------- 数据行 ---------------- */
+.kv{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13.5px}
+.kv:last-child{border-bottom:0}
+.kv span{color:var(--ink-3)}
+.kv b{font-weight:700;font-variant-numeric:tabular-nums}
+.big{
+  text-align:center;padding:22px 0 18px;margin-bottom:6px;
+  background:var(--grad-soft);border:1px solid var(--line-hot);border-radius:var(--r);
+}
+.big b{display:block;font-size:clamp(28px,6vw,40px);font-weight:900;letter-spacing:-1.2px;line-height:1.15}
+.big span{display:block;margin-top:4px;font-size:12px;color:var(--ink-3)}
+.prog{height:9px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin:10px 0 7px}
+.prog i{display:block;height:100%;width:0;background:var(--grad);border-radius:99px;transition:width .5s ease}
+
+/* ---------------- 倒计时 ---------------- */
+.count{display:flex;gap:7px;justify-content:center;align-items:center;margin-top:12px}
+.count u{
+  text-decoration:none;min-width:52px;padding:9px 4px;border-radius:11px;
+  background:rgba(0,0,0,.4);border:1px solid var(--line-hot);
+  font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;
+}
+.count em{font-style:normal;color:var(--ink-3);font-weight:700}
+
+/* ---------------- 三代 ---------------- */
+.gens{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.gen{
+  text-align:center;padding:20px 10px;border-radius:var(--r);
+  background:var(--surf);border:1px solid var(--line);opacity:.5;transition:.25s all;
+}
+.gen.on{opacity:1;border-color:var(--line-hot);background:var(--grad-soft);box-shadow:var(--glow)}
+.gen .disc{
+  width:46px;height:46px;margin:0 auto 10px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#fbbf24,#c2410c 72%);
+  display:grid;place-items:center;font-size:18px;font-weight:900;color:#2a0a0a;
+}
+.gen b{display:block;font-size:19px;font-weight:900}
+.gen span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-3)}
+
+/* ---------------- 生态 ---------------- */
+.eco{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:760px){.eco{grid-template-columns:1fr}}
+.eco-card{
+  position:relative;overflow:hidden;
+  background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);padding:26px 22px;
+  transition:.22s all;
+}
+.eco-card:hover{transform:translateY(-4px);border-color:var(--line-hot);box-shadow:var(--glow)}
+.eco-card .ico{font-size:34px;line-height:1;margin-bottom:14px;display:block}
+.eco-card h4{margin:0 0 8px;font-size:17px;font-weight:800}
+.eco-card p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.eco-card .tag{
+  position:absolute;top:18px;right:18px;font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.42);border:1px solid var(--line);color:var(--ink-3);
+}
+
+/* ---------------- 官方链接 ---------------- */
+.links{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.link{
+  display:flex;align-items:center;gap:9px;padding:13px 22px;border-radius:14px;
+  background:var(--surf);border:1px solid var(--line);font-weight:700;font-size:14px;
+  transition:.18s all;
+}
+.link:hover{transform:translateY(-2px);border-color:var(--line-hot);background:var(--surf-2)}
+.link svg{width:18px;height:18px;flex:none}
+
+/* ---------------- 区块标题 ---------------- */
+.sec{margin-top:64px}
+.sec-h{text-align:center;margin-bottom:26px}
+.sec-h h2{margin:0 0 8px;font-size:clamp(24px,4.6vw,34px);font-weight:900;letter-spacing:-.8px}
+.sec-h p{margin:0;color:var(--ink-3);font-size:14px}
+
+/* ---------------- 页脚 ---------------- */
+footer{margin-top:70px;padding:30px 0 44px;border-top:1px solid var(--line);text-align:center;font-size:12.5px;color:var(--ink-3)}
+footer a{color:var(--ink-2);border-bottom:1px dotted var(--line)}
+footer .addrs{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.warn{margin-top:14px;font-size:11.5px;color:rgba(255,255,255,.28);max-width:620px;margin-inline:auto;line-height:1.7}
+
+/* ---------------- Toast ---------------- */
+#toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,26px);
+  padding:13px 22px;border-radius:13px;font-size:13.5px;font-weight:600;
+  background:rgba(20,7,7,.96);border:1px solid var(--line-hot);box-shadow:var(--shadow);
+  opacity:0;pointer-events:none;transition:.28s all;z-index:99;max-width:88vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- 饼干图标(复用) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="cg" cx="34%" cy="28%">
+      <stop offset="0" stop-color="#fcd34d"/><stop offset="55%" stop-color="#e08c2e"/><stop offset="100%" stop-color="#a3410f"/>
+    </radialGradient>
+    <symbol id="cookie" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="29" fill="url(#cg)"/>
+      <circle cx="32" cy="32" r="29" fill="none" stroke="rgba(120,40,10,.5)" stroke-width="2"/>
+      <g fill="#4a2109">
+        <circle cx="22" cy="23" r="4.2"/><circle cx="41" cy="21" r="3.4"/>
+        <circle cx="45" cy="37" r="4"/><circle cx="27" cy="43" r="3.6"/>
+        <circle cx="34" cy="32" r="2.6"/><circle cx="16" cy="35" r="2.4"/>
+      </g>
+      <path d="M14 20a26 26 0 0 1 15-12" fill="none" stroke="rgba(255,240,200,.4)" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="wrap bar">
+    <div class="brand"><svg><use href="#cookie"/></svg><span>Cookie</span></div>
+    <div class="spacer"></div>
+    <button class="btn btn-hot" id="connectBtn">连接钱包</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= Hero ================= -->
+  <section class="hero">
+    <canvas id="embers"></canvas>
+    <div class="hero-in">
+      <svg class="cookie-mark"><use href="#cookie"/></svg>
+      <h1>咬一口 <span class="grad-text">Cookie</span><br>把筹码带回家</h1>
+      <p class="lede">预售入场,上线即得 <b>1.5 倍</b> 筹码;销毁挖矿,烧多少送双倍额度,每天零点准时释放。</p>
+      <div class="cta">
+        <button class="btn btn-hot" data-go="presale">🍪 参与预售</button>
+        <button class="btn" data-go="mine">🔥 销毁挖矿</button>
+      </div>
+      <div class="pills">
+        <span class="pill">预售 1.5× 筹码</span>
+        <span class="pill">上线先放 50%</span>
+        <span class="pill">销毁 ×2 额度</span>
+        <span class="pill">每日 2% 释放</span>
+        <span class="pill">三代邀请奖励</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="sPool">—</b><span>矿池余额</span></div>
+        <div class="stat"><b id="sBurned">—</b><span>累计销毁</span></div>
+        <div class="stat"><b id="sQuota">—</b><span>累计挖矿额度</span></div>
+        <div class="stat"><b id="sUsers">—</b><span>参与人数</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 标签页 ================= -->
+  <nav class="tabs">
+    <button class="tab on" data-tab="presale">预售</button>
+    <button class="tab" data-tab="mine">销毁挖矿</button>
+    <button class="tab" data-tab="invite">邀请</button>
+    <button class="tab" data-tab="claim">领取</button>
+  </nav>
+
+  <!-- ---------- 预售 ---------- -->
+  <section class="panel on" id="p-presale">
+    <div class="grid2">
+      <div class="tier">
+        <span class="badge" id="t1Badge">团队长优选</span>
+        <div class="price" id="t1Price">1<small>BNB</small></div>
+        <div class="name" id="t1Name">社区额度</div>
+        <ul>
+          <li><i>◆</i><span>上线即得 <b id="t1Chips">对应数量 ×1.5</b> 筹码</span></li>
+          <li><i>◆</i><span>先释放 <b id="t1Instant">50%</b>,当场可领</span></li>
+          <li><i>◆</i><span>剩余每日 <b id="t1Daily">2%</b> 释放</span></li>
+          <li><i>◆</i><span>每地址最多 <b id="t1Max">10</b> 份</span></li>
+        </ul>
+        <div class="qty">
+          <button class="qbtn" data-step="1:-1" aria-label="减少">−</button>
+          <input id="t1Qty" class="qin" inputmode="numeric" value="1" aria-label="份数">
+          <button class="qbtn" data-step="1:1" aria-label="增加">+</button>
+          <span class="qtot">合计 <b id="t1Total">1</b> BNB</span>
+        </div>
+        <button class="btn btn-hot btn-lg" id="buyCommunityBtn">认购社区额度</button>
+      </div>
+      <div class="tier">
+        <span class="badge" id="t2Badge">人人可参与</span>
+        <div class="price" id="t2Price">0.2<small>BNB</small></div>
+        <div class="name" id="t2Name">散户额度</div>
+        <ul>
+          <li><i>◆</i><span>上线即得 <b id="t2Chips">对应数量 ×1.5</b> 筹码</span></li>
+          <li><i>◆</i><span>先释放 <b id="t2Instant">50%</b>,当场可领</span></li>
+          <li><i>◆</i><span>剩余每日 <b id="t2Daily">2%</b> 释放</span></li>
+          <li><i>◆</i><span>每地址最多 <b id="t2Max">10</b> 份,散户友好</span></li>
+        </ul>
+        <div class="qty">
+          <button class="qbtn" data-step="2:-1" aria-label="减少">−</button>
+          <input id="t2Qty" class="qin" inputmode="numeric" value="1" aria-label="份数">
+          <button class="qbtn" data-step="2:1" aria-label="增加">+</button>
+          <span class="qtot">合计 <b id="t2Total">0.2</b> BNB</span>
+        </div>
+        <button class="btn btn-hot btn-lg" id="buyRetailBtn">认购散户额度</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>释放规则</h3>
+      <p class="sub">两个档位权益一致,只是入场金额不同</p>
+      <div class="timeline">
+        <div class="step"><div class="dot">1</div><div class="txt">预售期间认购,BNB 经合约<b>自动归集</b>到项目金库</div></div>
+        <div class="step"><div class="dot">2</div><div class="txt">项目上线,按认购额的 <b>1.5 倍</b> 计入你的总筹码</div></div>
+        <div class="step"><div class="dot">3</div><div class="txt">上线当场释放 <b>50%</b>,随时可领</div></div>
+        <div class="step"><div class="dot">4</div><div class="txt">剩下 50% 每天零点释放总量的 <b>2%</b>,25 天放完</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>我的预售</h3>
+      <p class="sub">连接钱包后自动读取链上数据</p>
+      <div class="big">
+        <b id="pClaimable">0</b>
+        <span>当前可领筹码</span>
+      </div>
+      <div class="prog"><i id="pProg"></i></div>
+      <div class="kv"><span>已释放进度</span><b id="pPct">0%</b></div>
+      <div class="kv"><span>已认购</span><b id="pPaid">0 BNB</b></div>
+      <div class="kv"><span>已持份数</span><b id="pTickets">0 / 10</b></div>
+      <div class="kv"><span>总筹码</span><b id="pAlloc">0</b></div>
+      <div class="kv"><span>每日释放</span><b id="pPerDay">0</b></div>
+      <div class="kv"><span>已领取</span><b id="pClaimed">0</b></div>
+      <button class="btn btn-hot btn-lg" id="pClaimBtn" style="margin-top:16px" disabled>领取预售筹码</button>
+      <p class="hint" id="pState">预售状态加载中…</p>
+    </div>
+  </section>
+
+  <!-- ---------- 销毁挖矿 ---------- -->
+  <section class="panel" id="p-mine">
+    <div class="grid2">
+      <div class="card">
+        <h3>销毁挖矿</h3>
+        <p class="sub" id="tagRate">销毁 ×2 · 每日 2% 释放</p>
+        <div class="field">
+          <label>销毁数量</label>
+          <div class="inputwrap">
+            <input id="burnAmt" inputmode="decimal" placeholder="0.0" autocomplete="off">
+            <button class="mini" id="maxBtn">最大</button>
+          </div>
+          <p class="hint" id="balHint">余额 —</p>
+        </div>
+        <div class="field">
+          <label>推荐人(可选,仅首次生效)</label>
+          <div class="inputwrap"><input id="refInput" placeholder="0x…" autocomplete="off"></div>
+        </div>
+        <div class="big">
+          <b id="quotaPreview">0</b>
+          <span>销毁后获得的挖矿额度</span>
+        </div>
+        <div class="row" style="margin-top:16px">
+          <button class="btn" id="approveBtn">授权</button>
+          <button class="btn btn-hot" id="burnBtn">🔥 确认销毁</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>我的矿场</h3>
+        <p class="sub">额度按天线性释放,烧完为止</p>
+        <div class="big">
+          <b id="claimable">0</b>
+          <span>当前可领取</span>
+          <div class="count">
+            <u id="cH">00</u><em>:</em><u id="cM">00</u><em>:</em><u id="cS">00</u>
+          </div>
+          <span style="margin-top:8px">距下次释放</span>
+        </div>
+        <div class="prog"><i id="progBar"></i></div>
+        <div class="kv"><span>已释放</span><b id="unlockedPct">0%</b></div>
+        <div class="kv"><span>总额度</span><b id="mQuota">0</b></div>
+        <div class="kv"><span>每日释放</span><b id="perDay">0</b></div>
+        <div class="kv"><span>累计销毁</span><b id="mBurned">0</b></div>
+        <div class="kv"><span>累计领取</span><b id="mClaimed">0</b></div>
+        <div class="kv"><span>邀请收益</span><b id="mRef">0</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 邀请 ---------- -->
+  <section class="panel" id="p-invite">
+    <div class="card">
+      <h3>我的推广链接</h3>
+      <p class="sub">对方通过链接首次销毁即绑定,关系永久不可更改</p>
+      <div class="inputwrap">
+        <input id="refLink" readonly placeholder="连接钱包后生成">
+        <button class="mini" id="copyBtn">复制</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>三代奖励</h3>
+      <p class="sub">按下级每日释放量计提,发放到你的余额;持币达标才拿得到对应代数</p>
+      <div class="gens">
+        <div class="gen" id="gen1"><div class="disc">10%</div><b>一代</b><span>持币 100 万</span></div>
+        <div class="gen" id="gen2"><div class="disc">5%</div><b>二代</b><span>持币 200 万</span></div>
+        <div class="gen" id="gen3"><div class="disc">5%</div><b>三代</b><span>持币 300 万</span></div>
+      </div>
+      <p class="hint" style="margin-top:14px">持币不达标的那一代直接跳过,不会顺延给更上层。</p>
+    </div>
+  </section>
+
+  <!-- ---------- 领取 ---------- -->
+  <section class="panel" id="p-claim">
+    <div class="grid2">
+      <div class="card">
+        <h3>挖矿释放</h3>
+        <p class="sub">每天零点(北京时间)结算一次</p>
+        <div class="big"><b id="claimable2">0</b><span>可领取</span></div>
+        <button class="btn btn-hot btn-lg" id="claimBtn" style="margin-top:14px" disabled>领取释放</button>
+        <div id="owedWrap" style="display:none;margin-top:14px">
+          <div class="kv"><span>矿池不足欠付</span><b id="owedAmt">0</b></div>
+        </div>
+        <button class="btn btn-lg" id="claimOwedBtn" style="display:none;margin-top:10px">领取欠付</button>
+      </div>
+      <div class="card">
+        <h3>预售筹码</h3>
+        <p class="sub">上线后先放 50%,余下每日 2%</p>
+        <div class="big"><b id="pClaimable2">0</b><span>可领取</span></div>
+        <button class="btn btn-hot btn-lg" id="pClaimBtn2" style="margin-top:14px" disabled>领取预售筹码</button>
+        <div class="kv" style="margin-top:14px"><span>已领 / 总额</span><b id="pRatio">0 / 0</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 生态 ================= -->
+  <section class="sec">
+    <div class="sec-h">
+      <h2>饼干参与<span class="grad-text">应用</span></h2>
+      <p>不止一个代币,而是一整条能玩的赛道</p>
+    </div>
+    <div class="eco" id="ecoGrid"></div>
+  </section>
+
+  <!-- ================= 官方链接 ================= -->
+  <section class="sec">
+    <div class="sec-h">
+      <h2>官方<span class="grad-text">链接</span></h2>
+      <p>只认下面这几个入口,其余一律是假的</p>
+    </div>
+    <div class="links" id="socialLinks"></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="addrs">
+      <span>预售合约 <a id="fPresale" target="_blank" rel="noopener">未部署</a></span>
+      <span>挖矿合约 <a id="fMining" target="_blank" rel="noopener">未部署</a></span>
+      <span>代币合约 <a id="fToken" target="_blank" rel="noopener">未部署</a></span>
+    </div>
+    <div>© Cookie · 数据全部来自链上,前端不托管任何资产</div>
+    <p class="warn">风险提示:加密资产价格波动剧烈,预售与销毁均为不可逆操作。合约代码开源可查,请自行核验后再参与,本站不构成任何投资建议。</p>
+  </div>
+</footer>
+
+<div id="toast"></div>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
