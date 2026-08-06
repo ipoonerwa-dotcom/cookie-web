@@ -604,20 +604,38 @@
       return true;
     }
     function spawn() {
-      return { x: Math.random() * W, y: H + 10, vy: -(0.25 + Math.random() * 0.6),
-               vx: (Math.random() - 0.5) * 0.3, r: 0.5 + Math.random() * 1.1, a: 0.45 + Math.random() * 0.55 };
+      return {
+        x: Math.random() * W, y: H + 10,
+        vy: -(0.18 + Math.random() * 0.5), vx: (Math.random() - 0.5) * 0.28,
+        r: 0.6 + Math.random() * 1.9, a: 0.35 + Math.random() * 0.65,
+        // a minority are flat flakes that tumble, the rest are round motes
+        flake: Math.random() < 0.28, rot: Math.random() * 6.283, spin: (Math.random() - 0.5) * 0.05
+      };
     }
     function draw() {
       ctx.clearRect(0, 0, W, H);
-      if (ps.length < 18 && Math.random() < 0.26) ps.push(spawn());
+      if (ps.length < 34 && Math.random() < 0.42) ps.push(spawn());
       for (var i = ps.length - 1; i >= 0; i--) {
         var p = ps[i];
-        p.x += p.vx; p.y += p.vy; p.a -= 0.0032;
-        if (p.a <= 0 || p.y < -10) { ps.splice(i, 1); continue; }
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, 6.283);
-        ctx.fillStyle = "rgba(214,182,102," + (p.a * 0.7).toFixed(3) + ")";
-        ctx.fill();
+        p.x += p.vx; p.y += p.vy; p.a -= 0.0026; p.rot += p.spin;
+        if (p.a <= 0 || p.y < -12) { ps.splice(i, 1); continue; }
+        // The bloom is what makes these read as gold light rather than beige dots.
+        ctx.shadowBlur = 10 + p.r * 4;
+        ctx.shadowColor = "rgba(212,175,55," + (p.a * 0.8).toFixed(3) + ")";
+        ctx.fillStyle = "rgba(250,232,170," + p.a.toFixed(3) + ")";
+        if (p.flake) {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          var w = p.r * 2.1, h = p.r * 1.1 * (0.4 + Math.abs(Math.cos(p.rot)));
+          ctx.fillRect(-w / 2, -h / 2, w, h);
+          ctx.restore();
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, 6.283);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
       }
       raf = requestAnimationFrame(draw);
     }
