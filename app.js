@@ -813,6 +813,13 @@
     addEventListener("hashchange", renderRoute);
     renderRoute();
 
+    // Hero shortcuts. These used to live in initTabs(), which went away with the tab strip --
+    // the buttons were left with no handler at all.
+    var jumps = document.querySelectorAll("[data-go]");
+    for (var i = 0; i < jumps.length; i++) {
+      (function (b) { b.onclick = function () { location.hash = "#/" + b.dataset.go; }; })(jumps[i]);
+    }
+
     $("burger").onclick = function () { document.body.classList.toggle("drawer"); };
     $("scrim").onclick = function () { document.body.classList.remove("drawer"); };
     addEventListener("keydown", function (e) { if (e.key === "Escape") document.body.classList.remove("drawer"); });

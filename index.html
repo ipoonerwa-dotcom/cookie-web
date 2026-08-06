@@ -173,8 +173,11 @@ header{
 }
 .bar{display:flex;align-items:center;gap:10px;height:68px}
 .bar .page-title{font-size:16px;font-weight:800;letter-spacing:-.2px}
-@media(min-width:1024px){.bar .brand{display:none}}
-@media(max-width:1023px){.bar .page-title{display:none}}
+/* The sidebar already carries both the logo and the active page on desktop, so the header
+   there is just the wallet controls. On mobile the sidebar is a drawer, so the app-bar takes
+   over: burger plus the page you are on. */
+@media(min-width:1024px){.bar .brand,.bar .page-title{display:none}}
+@media(max-width:1023px){.bar .brand{display:none}}
 /* Under 430px the header runs out of room and the connect button starts wrapping.
    The wordmark is the cheapest thing to drop: the sidebar carries it, and the mark alone
    still identifies the site. */
