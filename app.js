@@ -114,7 +114,7 @@
       .then(function (accs) { account = accs[0]; return ensureChain(); })
       .then(function () {
         $("connectBtn").textContent = short(account);
-        $("refLink").value = location.origin + location.pathname + "?ref=" + account;
+        $("refLink").value = refLinkFor(account);
         refresh();
       })
       .catch(function (e) { toast(e.message || t("toast.rejected")); });
@@ -466,6 +466,56 @@
     if (left <= 1) setTimeout(refresh, 4000);
   }
 
+  /* ---------------- 推广链接 ---------------- */
+  // Lands the invitee straight on the burn page, which is the only thing the referral
+  // actually pays out on.
+  function refLinkFor(addr) {
+    return location.origin + location.pathname + "?ref=" + addr + "#/mine";
+  }
+
+  /**
+   * Copying is where referral links quietly die: wallet in-app browsers often ship no
+   * navigator.clipboard at all, and even where it exists the write is rejected whenever the
+   * document is not focused. Both failures are silent, so this falls back twice and, if even
+   * that fails, selects the text and says so -- the user can always copy it by hand.
+   */
+  function copyText(text) {
+    function selectIt() {
+      var el = $("refLink");
+      if (!el) return;
+      el.removeAttribute("readonly");
+      el.focus();
+      el.setSelectionRange(0, el.value.length);
+      el.setAttribute("readonly", "readonly");
+    }
+
+    function legacy() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      return ok;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        toast(t("toast.copied"));
+      }).catch(function () {
+        if (legacy()) toast(t("toast.copied"));
+        else { selectIt(); toast(t("toast.copyManual")); }
+      });
+      return;
+    }
+    if (legacy()) toast(t("toast.copied"));
+    else { selectIt(); toast(t("toast.copyManual")); }
+  }
+
   /* ---------------- 生态 & 官方链接 ---------------- */
   var ICONS = {
     qq: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c3 0 5 2.2 5 5.2 0 .9.4 1.5 1 2.4.9 1.3 1.7 2.6 1.7 4.4 0 1-.4 1.7-1 1.7-.6 0-1-.5-1.4-1.4-.2.9-.7 1.7-1.4 2.3.7.3 1.2.8 1.2 1.3 0 .9-1.8 1.6-4.1 1.6h-.1c-2.3 0-4.1-.7-4.1-1.6 0-.5.5-1 1.2-1.3-.7-.6-1.2-1.4-1.4-2.3-.4.9-.8 1.4-1.4 1.4-.6 0-1-.7-1-1.7 0-1.8.8-3.1 1.7-4.4.6-.9 1-1.5 1-2.4C7 4.2 9 2 12 2z"/></svg>',
@@ -794,7 +844,11 @@
     $("copyBtn").onclick = function () {
       var v = $("refLink").value;
       if (!v) { toast(t("toast.connectFirst")); return; }
-      navigator.clipboard.writeText(v).then(function () { toast(t("toast.copied")); });
+      copyText(v);
+    };
+    // Tapping the field selects the whole link, so copying by hand is one gesture.
+    $("refLink").onclick = function () {
+      if (this.value) this.setSelectionRange(0, this.value.length);
     };
 
     if (window.ethereum) {
@@ -802,7 +856,7 @@
         if (a && a.length) {
           account = a[0];
           $("connectBtn").textContent = short(account);
-          $("refLink").value = location.origin + location.pathname + "?ref=" + account;
+          $("refLink").value = refLinkFor(account);
         }
         refresh();
       });
