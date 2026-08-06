@@ -28,8 +28,8 @@ window.COOKIE_CONFIG = {
 
   // 预售参数(同样仅作未连钱包时的展示)
   presaleTiers: [
-    { key: "community", label: "社区额度", bnb: 1,   badge: "团队长优选" },
-    { key: "retail",    label: "散户额度", bnb: 0.2, badge: "人人可参与" }
+    { key: "community", label: "社区额度", bnb: 1,   slots: 100,  badge: "团队长优选" },
+    { key: "retail",    label: "散户额度", bnb: 0.2, slots: 2000, badge: "人人可参与" }
   ],
   presaleRate: 10000,              // 1 BNB = 多少枚(1.5 倍之前的面值)
   presaleBonus: 1.5,               // 上线获得对应数量的几倍筹码 → 实得 15000/BNB

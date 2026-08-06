@@ -108,7 +108,7 @@
 
   /* ---------------- 钱包 ---------------- */
   function connect() {
-    if (!window.ethereum) { toast("未检测到钱包,请用 MetaMask 或币安钱包打开"); return; }
+    if (!window.ethereum) { toast(t("toast.noWallet")); return; }
     window.ethereum.request({ method: "eth_requestAccounts" })
       .then(function (accs) { account = accs[0]; return ensureChain(); })
       .then(function () {
@@ -116,7 +116,7 @@
         $("refLink").value = location.origin + location.pathname + "?ref=" + account;
         refresh();
       })
-      .catch(function (e) { toast(e.message || "连接被拒绝"); });
+      .catch(function (e) { toast(e.message || t("toast.rejected")); });
   }
   function ensureChain() {
     var want = "0x" + Number(C.chainId).toString(16);
@@ -124,7 +124,7 @@
       if (cur === want) return;
       return window.ethereum.request({
         method: "wallet_switchEthereumChain", params: [{ chainId: want }]
-      }).catch(function () { toast("请手动切换到 " + C.chainName); });
+      }).catch(function () { toast(t("toast.switchChain") + C.chainName); });
     });
   }
   function send(to, data, value) {
@@ -198,7 +198,7 @@
     if (C.token) {
       call(C.token, SEL.balanceOf + encAddr(account)).then(function (r) {
         st.balance = toBig(words(r)[0]);
-        $("balHint").textContent = "余额 " + fmt(st.balance);
+        $("balHint").textContent = t("mine.balance") + " " + fmt(st.balance);
       });
       call(C.token, SEL.allowance + encAddr(account) + encAddr(C.mining)).then(function (r) {
         st.allowance = toBig(words(r)[0]);
@@ -267,23 +267,22 @@
   }
 
   function renderTiers() {
-    var bonus = Number(st.bonusBps) / 10000;
-    var inst = Number(st.instBps) / 100;
-    var daily = C.presaleDailyPct != null ? C.presaleDailyPct : 2;
-    var sym = C.tokenSymbol || "COOKIE";
+    // Writes are guarded because the tier cards are edited by hand fairly often: dropping a
+    // line from the markup should cost that one figure, not take the whole page down with it.
+    function put(id, text) { var el = $(id); if (el) el.textContent = text; }
 
     function fill(i, ticket, fallbackBnb) {
       var bnb = ticket > 0n ? fmtBnb(ticket) : String(fallbackBnb);
-      $("t" + i + "Price").innerHTML = bnb + "<small>BNB</small>";
-      var chips = st.rate > 0n && ticket > 0n
-        ? fmt(ticket * st.rate * st.bonusBps / (WEI * 10000n)) + " " + sym
-        : "对应数量 ×" + bonus;
-      $("t" + i + "Chips").textContent = chips;
-      $("t" + i + "Instant").textContent = inst + "%";
-      $("t" + i + "Daily").textContent = daily + "%";
+      var price = $("t" + i + "Price");
+      if (price) price.innerHTML = bnb + "<small>BNB</small>";
     }
     fill(1, st.tCommunity, (C.presaleTiers && C.presaleTiers[0] ? C.presaleTiers[0].bnb : 1));
     fill(2, st.tRetail, (C.presaleTiers && C.presaleTiers[1] ? C.presaleTiers[1].bnb : 0.2));
+    [1, 2].forEach(function (i) {
+      var cfg = C.presaleTiers && C.presaleTiers[i - 1];
+      if (cfg && cfg.slots) put("t" + i + "Slots", Number(cfg.slots).toLocaleString());
+      put("t" + i + "Max", st.maxTickets.toString());
+    });
     syncAllQty();
   }
 
@@ -302,13 +301,15 @@
   function syncQty(which) {
     var q = readQty(which);
     $("t" + which + "Qty").value = String(q);
-    var t = ticketWei(which);
+    var tk = ticketWei(which);
     var fallback = which === 1
       ? (C.presaleTiers && C.presaleTiers[0] ? C.presaleTiers[0].bnb : 1)
       : (C.presaleTiers && C.presaleTiers[1] ? C.presaleTiers[1].bnb : 0.2);
-    $("t" + which + "Total").textContent = t > 0n
-      ? fmtBnb(t * BigInt(q))
+    $("t" + which + "Total").textContent = tk > 0n
+      ? fmtBnb(tk * BigInt(q))
       : (Math.round(fallback * q * 100000) / 100000).toString();
+    var echo = $("t" + which + "QtyEcho");
+    if (echo) echo.textContent = " · " + q + " " + t("tier.shares");
     var maxEl = $("t" + which + "Max");
     if (maxEl) maxEl.textContent = st.maxTickets.toString();
   }
@@ -339,16 +340,16 @@
     var b1 = $("buyCommunityBtn"), b2 = $("buyRetailBtn"), s = $("pState");
     if (st.claiming) {
       b1.disabled = b2.disabled = true;
-      b1.textContent = b2.textContent = "预售已结束";
-      s.textContent = "预售已结束,筹码释放中 —— 上线先放 50%,余下每日 2%。";
+      b1.textContent = b2.textContent = t("sale.btnEnded");
+      s.textContent = t("sale.ended");
     } else if (st.saleOpen) {
       b1.disabled = b2.disabled = false;
-      b1.textContent = "认购社区额度"; b2.textContent = "认购散户额度";
-      s.textContent = "预售进行中,每地址限购一份,认购后等待项目上线开放领取。";
+      b1.textContent = t("tier.buy1"); b2.textContent = t("tier.buy2");
+      s.textContent = t("sale.open", { n: st.maxTickets });
     } else {
       b1.disabled = b2.disabled = true;
-      b1.textContent = b2.textContent = "预售未开放";
-      s.textContent = "预售尚未开放,请关注官方频道公告。";
+      b1.textContent = b2.textContent = t("sale.btnNotOpen");
+      s.textContent = t("sale.notOpen");
     }
   }
 
@@ -360,8 +361,8 @@
     for (var i = 1; i <= 3; i++) $("gen" + i).classList.toggle("on", i <= n);
   }
   function updateTag() {
-    $("tagRate").textContent = "销毁 ×" + (Number(st.mulBps) / 10000) +
-      " · 每日 " + (Number(st.rateBps) / 100) + "% 释放";
+    var el = $("tagRate");
+    if (el) el.textContent = t("mine.tagRate", { m: Number(st.mulBps) / 10000, r: Number(st.rateBps) / 100 });
   }
   function syncApprove() {
     var need = parseAmt($("burnAmt").value);
@@ -380,7 +381,7 @@
     var b = $(btn), old = b.textContent;
     b.disabled = true; b.textContent = label;
     return run()
-      .then(function (h) { toast("已提交,等待上链…"); return waitTx(h); })
+      .then(function (h) { toast(t("toast.submitted")); return waitTx(h); })
       .then(function (r) {
         if (r && r.status === "0x0") { toast(failMsg); return; }
         toast(okMsg); refresh();
@@ -390,54 +391,54 @@
   }
 
   function doApprove() {
-    if (!C.token || !C.mining) { toast("合约尚未部署"); return; }
+    if (!C.token || !C.mining) { toast(t("toast.notDeployed")); return; }
     tx("approveBtn", "授权中…", function () {
       return send(C.token, SEL.approve + encAddr(C.mining) + MAX_UINT);
-    }, "授权成功", "授权失败");
+    }, t("toast.approveOk"), t("toast.approveFail"));
   }
   function doBurn() {
-    if (!C.mining) { toast("合约尚未部署"); return; }
+    if (!C.mining) { toast(t("toast.notDeployed")); return; }
     var amt = parseAmt($("burnAmt").value);
-    if (amt <= 0n) { toast("请输入销毁数量"); return; }
-    if (st.minBurn > 0n && amt < st.minBurn) { toast("低于最小销毁量 " + fmt(st.minBurn)); return; }
-    if (amt > st.balance) { toast("余额不足"); return; }
+    if (amt <= 0n) { toast(t("toast.enterAmount")); return; }
+    if (st.minBurn > 0n && amt < st.minBurn) { toast(t("toast.belowMin") + fmt(st.minBurn)); return; }
+    if (amt > st.balance) { toast(t("toast.insufficient")); return; }
     var ref = ($("refInput").value || "").trim();
-    if (ref && !/^0x[0-9a-fA-F]{40}$/.test(ref)) { toast("推荐人地址格式不对"); return; }
+    if (ref && !/^0x[0-9a-fA-F]{40}$/.test(ref)) { toast(t("toast.badRef")); return; }
     if (!ref) ref = ZERO;
 
     tx("burnBtn", "销毁中…", function () {
       return send(C.mining, SEL.burn + encUint(amt) + encAddr(ref));
-    }, "销毁成功,额度已入账", "销毁失败,请检查授权与余额")
+    }, t("toast.burnOk"), t("toast.burnFail"))
       .then(function () { $("burnAmt").value = ""; updatePreview(); });
   }
   function doClaim() {
-    if (!C.mining) { toast("合约尚未部署"); return; }
+    if (!C.mining) { toast(t("toast.notDeployed")); return; }
     tx("claimBtn", "领取中…", function () { return send(C.mining, SEL.claim); },
-       "领取成功", "领取失败,可能暂无可领额度");
+       t("toast.claimOk"), t("toast.claimFail"));
   }
   function doClaimOwed() {
     tx("claimOwedBtn", "领取中…", function () { return send(C.mining, SEL.claimOwed); },
-       "欠付已领取", "领取失败");
+       t("toast.claimOk"), t("toast.claimFail"));
   }
 
   /* ---------------- 动作:预售 ---------------- */
   function doBuy(which) {
-    if (!C.presale) { toast("预售合约尚未部署"); return; }
-    if (!st.saleOpen) { toast("预售当前未开放"); return; }
+    if (!C.presale) { toast(t("toast.presaleNotDeployed")); return; }
+    if (!st.saleOpen) { toast(t("toast.saleClosed")); return; }
     var isCommunity = which === "community";
     var idx = isCommunity ? 1 : 2;
     var ticket = isCommunity ? st.tCommunity : st.tRetail;
-    if (ticket <= 0n) { toast("读取档位金额失败,请刷新重试"); return; }
-    if (account && st.ticketsLeft <= 0n) { toast("你已买满 " + st.maxTickets + " 份"); return; }
+    if (ticket <= 0n) { toast(t("toast.rateFail")); return; }
+    if (account && st.ticketsLeft <= 0n) { toast(t("toast.ticketFull") + st.maxTickets); return; }
 
     var qty = readQty(idx);
     var total = ticket * BigInt(qty);
     tx(isCommunity ? "buyCommunityBtn" : "buyRetailBtn", "认购中…", function () {
       return send(C.presale, (isCommunity ? SEL.buyCommunity : SEL.buyRetail) + encUint(qty), total);
-    }, "认购成功," + qty + " 份已入账", "认购失败,请检查 BNB 余额或是否超出份数上限");
+    }, t("toast.buyOk") + qty + t("toast.buyOk2"), t("toast.buyFail"));
   }
   function doPresaleClaim(btn) {
-    if (!C.presale) { toast("预售合约尚未部署"); return; }
+    if (!C.presale) { toast(t("toast.presaleNotDeployed")); return; }
     tx(btn, "领取中…", function () { return send(C.presale, SEL.claim); },
        "领取成功", "领取失败,可能暂无可领筹码");
   }
@@ -465,12 +466,7 @@
     }
     var jumps = document.querySelectorAll("[data-go]");
     for (var k = 0; k < jumps.length; k++) {
-      (function (b) {
-        b.onclick = function () {
-          go(b.dataset.go);
-          document.querySelector(".tabs").scrollIntoView({ behavior: "smooth", block: "start" });
-        };
-      })(jumps[k]);
+      (function (b) { b.onclick = function () { location.hash = "#/" + b.dataset.go; }; })(jumps[k]);
     }
   }
 
@@ -600,6 +596,93 @@
     })(t0);
   }
 
+
+  /* ---------------- 中英文 ---------------- */
+  var DICT = window.COOKIE_I18N || { zh: {}, en: {} };
+  var lang = "zh";
+  try { lang = localStorage.getItem("cookie_lang") || (navigator.language || "").slice(0, 2) === "zh" ? "zh" : "en"; } catch (e) {}
+  if (lang !== "en") lang = "zh";
+
+  // Missing keys fall back to Chinese rather than showing the raw key: a half-translated
+  // page is survivable, a page full of "tier.badge1" is not.
+  function t(key, vars) {
+    var v = (DICT[lang] && DICT[lang][key]) || (DICT.zh && DICT.zh[key]) || key;
+    if (vars) {
+      Object.keys(vars).forEach(function (k) { v = v.split("{" + k + "}").join(vars[k]); });
+    }
+    return v;
+  }
+
+  function applyLang() {
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    var els = document.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < els.length; i++) {
+      var k = els[i].getAttribute("data-i18n");
+      if (els[i].tagName === "INPUT") els[i].placeholder = t(k); else els[i].textContent = t(k);
+    }
+    var ph = $("refLink"); if (ph) ph.placeholder = t("inv.placeholder");
+    var lb = $("langLabel"); if (lb) lb.textContent = lang === "zh" ? "中文" : "English";
+    var ul = document.querySelectorAll("#lang li");
+    for (var j = 0; j < ul.length; j++) ul[j].classList.toggle("on", ul[j].dataset.lang === lang);
+    // Anything drawn from data has to be rebuilt, not just relabelled.
+    renderTiers(); renderSaleState(); updateTag(); renderEco(); renderSocial();
+    syncTitle();
+  }
+
+  function setLang(next) {
+    if (next === lang) return;
+    lang = next;
+    try { localStorage.setItem("cookie_lang", lang); } catch (e) {}
+    applyLang();
+  }
+
+  function initLang() {
+    var box = $("lang");
+    $("langBtn").onclick = function (e) { e.stopPropagation(); box.classList.toggle("open"); };
+    document.addEventListener("click", function () { box.classList.remove("open"); });
+    var items = document.querySelectorAll("#lang li");
+    for (var i = 0; i < items.length; i++) {
+      (function (li) { li.onclick = function () { setLang(li.dataset.lang); box.classList.remove("open"); }; })(items[i]);
+    }
+  }
+
+  /* ---------------- 路由 ---------------- */
+  var ROUTES = ["home", "presale", "mine", "invite", "claim"];
+
+  function currentRoute() {
+    var h = (location.hash || "").replace(/^#\/?/, "").split("?")[0];
+    return ROUTES.indexOf(h) >= 0 ? h : "home";
+  }
+
+  function syncTitle() {
+    var el = $("pageTitle");
+    if (el) el.textContent = t("nav." + currentRoute());
+  }
+
+  function renderRoute() {
+    var r = currentRoute();
+    var pages = document.querySelectorAll(".route");
+    for (var i = 0; i < pages.length; i++) pages[i].classList.toggle("on", pages[i].dataset.page === r);
+    var links = document.querySelectorAll(".navlink");
+    for (var j = 0; j < links.length; j++) links[j].classList.toggle("on", links[j].dataset.route === r);
+    syncTitle();
+    document.body.classList.remove("drawer");
+    window.scrollTo(0, 0);
+    // Reveal only observes what existed at startup; a freshly shown page needs a nudge.
+    var fresh = document.querySelectorAll(".route.on .reveal:not(.in)");
+    for (var k = 0; k < fresh.length; k++) fresh[k].classList.add("in");
+  }
+
+  function initRouter() {
+    if (!location.hash) location.replace("#/home");
+    addEventListener("hashchange", renderRoute);
+    renderRoute();
+
+    $("burger").onclick = function () { document.body.classList.toggle("drawer"); };
+    $("scrim").onclick = function () { document.body.classList.remove("drawer"); };
+    addEventListener("keydown", function (e) { if (e.key === "Escape") document.body.classList.remove("drawer"); });
+  }
+
   /* ---------------- 火星 ---------------- */
   function embers() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -673,7 +756,11 @@
 
   /* ---------------- 初始化 ---------------- */
   function init() {
-    initTabs();
+    // One broken selector should not take the whole page down with it.
+    try {
+    initLang();
+    applyLang();
+    initRouter();
     initQty();
     renderMarquee();
     renderEco();
@@ -704,8 +791,8 @@
     };
     $("copyBtn").onclick = function () {
       var v = $("refLink").value;
-      if (!v) { toast("请先连接钱包"); return; }
-      navigator.clipboard.writeText(v).then(function () { toast("推广链接已复制"); });
+      if (!v) { toast(t("toast.connectFirst")); return; }
+      navigator.clipboard.writeText(v).then(function () { toast(t("toast.copied")); });
     };
 
     if (window.ethereum) {
@@ -723,6 +810,9 @@
       refresh();
     }
     setInterval(refresh, 20000);
+    } catch (e) {
+      console.error("init failed:", (e && e.stack) || e);
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
