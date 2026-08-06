@@ -537,9 +537,12 @@
       items.concat(items).forEach(function (m) {
         var d = document.createElement("div");
         d.className = "chip";
-        d.innerHTML = m.logo
-          ? '<img src="' + esc(m.logo) + '" alt="' + esc(m.name) + '" loading="lazy">'
-          : '<span class="dot"></span><span>' + esc(m.name) + "</span>";
+        // Icon plus name, always. Brand assets come in wildly different shapes -- some
+        // wordmarks, some marks, some dark-on-light -- and pairing every one with the same
+        // white label is what keeps the row looking like a wall instead of a scrapbook.
+        d.innerHTML = (m.logo
+          ? '<img src="' + esc(m.logo) + '" alt="" loading="lazy">'
+          : '<span class="dot"></span>') + "<span>" + esc(m.name) + "</span>";
         el.appendChild(d);
       });
     }

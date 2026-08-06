@@ -392,10 +392,14 @@ html.reveal-ready .reveal[data-d="3"]{transition-delay:.24s}
 .marquee:hover .mq-track{animation-play-state:paused}
 @keyframes mqL{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes mqR{from{transform:translateX(-50%)}to{transform:translateX(0)}}
-.chip img{height:26px;width:auto;max-width:132px;object-fit:contain;
-  /* Mixed-quality logos look like a jumble in colour; one tone keeps the wall calm,
-     and the real thing comes back under the cursor. */
-  filter:grayscale(1) brightness(1.7) contrast(.85);opacity:.72;transition:filter .35s,opacity .35s}
+.chip img{
+  height:26px;width:26px;flex:none;object-fit:contain;
+  /* brightness(0) invert(1) flattens any mark to a white silhouette, which is the only
+     treatment that survives both dark-on-light and light-on-dark source assets.
+     Colour returns under the cursor. */
+  filter:brightness(0) invert(1);opacity:.62;
+  transition:filter .35s,opacity .35s;
+}
 .chip:hover img{filter:none;opacity:1}
 .chip{
   display:flex;align-items:center;gap:12px;flex:none;

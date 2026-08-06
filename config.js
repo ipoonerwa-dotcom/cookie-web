@@ -50,8 +50,13 @@ window.COOKIE_CONFIG = {
   //
   // 目前只放了确实成立的两条 —— 谈下来一个加一个。
   partners: [
-    { name: "BNB Chain",   logo: "" },
-    { name: "PancakeSwap", logo: "" }
+    { name: "BNB Chain",    logo: "" },
+    { name: "PancakeSwap",  logo: "" },
+    { name: "Flap",         logo: "logos/flap.svg" },
+    { name: "TokenPocket",  logo: "logos/tokenpocket.png" },
+    { name: "GoPlus",       logo: "logos/goplus.png" },
+    { name: "AVE",          logo: "logos/ave.svg" },
+    { name: "GMGN",         logo: "logos/gmgn.png" }
   ],
 
   // 生态板块
