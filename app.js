@@ -66,15 +66,24 @@
   var UNIT = 10n ** DEC;
   var WEI = 10n ** 18n;
   function toNum(v, unit) { return Number(v * 10000n / (unit || UNIT)) / 10000; }
+  // Chinese groups large numbers by 万/亿, English by K/M/B -- reusing one set would leave
+  // half the readers doing arithmetic in their head.
   function fmt(v, unit) {
     var n = typeof v === "bigint" ? toNum(v, unit) : Number(v || 0);
     if (!isFinite(n)) return "0";
     var abs = Math.abs(n);
-    if (abs >= 1e8) return (n / 1e8).toFixed(2).replace(/\.00$/, "") + " 亿";
-    if (abs >= 1e4) return (n / 1e4).toFixed(2).replace(/\.00$/, "") + " 万";
+    var trim = function (x, d) { return x.toFixed(d).replace(/\.?0+$/, ""); };
     if (abs === 0) return "0";
+    if (lang === "en") {
+      if (abs >= 1e9) return trim(n / 1e9, 2) + "B";
+      if (abs >= 1e6) return trim(n / 1e6, 2) + "M";
+      if (abs >= 1e3) return trim(n / 1e3, 2) + "K";
+    } else {
+      if (abs >= 1e8) return trim(n / 1e8, 2) + " 亿";
+      if (abs >= 1e4) return trim(n / 1e4, 2) + " 万";
+    }
     if (abs < 0.0001) return "<0.0001";
-    return n.toFixed(abs < 1 ? 4 : 2).replace(/\.?0+$/, "");
+    return trim(n, abs < 1 ? 4 : 2);
   }
   function fmtBnb(v) {
     var n = Number(v * 100000n / WEI) / 100000;
@@ -135,7 +144,7 @@
     });
   }
   function send(to, data, value) {
-    if (!account) { connect(); return Promise.reject(new Error("未连接")); }
+    if (!account) { connect(); return Promise.reject(new Error(t("btn.disconnected"))); }
     var tx = { from: account, to: to, data: data };
     if (value && value > 0n) tx.value = "0x" + value.toString(16);
     return window.ethereum.request({ method: "eth_sendTransaction", params: [tx] });
@@ -218,7 +227,7 @@
 
   /* ---------------- 读链:预售 ---------------- */
   function refreshPresale() {
-    if (!C.presale) { $("pState").textContent = "预售合约尚未部署,敬请等待"; return; }
+    if (!C.presale) { $("pState").textContent = t("sale.notDeployed"); return; }
 
     call(C.presale, SEL.saleInfo).then(function (r) {
       var w = words(r);
@@ -399,7 +408,7 @@
     var need = parseAmt($("burnAmt").value);
     var ok = st.allowance > 0n && st.allowance >= need && need > 0n;
     $("approveBtn").disabled = ok;
-    $("approveBtn").textContent = ok ? "已授权" : "授权";
+    $("approveBtn").textContent = t(ok ? "mine.approved" : "mine.approve");
   }
   function updatePreview() {
     var amt = parseAmt($("burnAmt").value);
@@ -423,7 +432,7 @@
 
   function doApprove() {
     if (!C.token || !C.mining) { toast(t("toast.notDeployed")); return; }
-    tx("approveBtn", "授权中…", function () {
+    tx("approveBtn", t("mine.approving"), function () {
       return send(C.token, SEL.approve + encAddr(C.mining) + MAX_UINT);
     }, t("toast.approveOk"), t("toast.approveFail"));
   }
@@ -442,18 +451,18 @@
       if (isAddr(candidate)) ref = candidate;
     }
 
-    tx("burnBtn", "销毁中…", function () {
+    tx("burnBtn", t("mine.burning"), function () {
       return send(C.mining, SEL.burn + encUint(amt) + encAddr(ref));
     }, t("toast.burnOk"), t("toast.burnFail"))
       .then(function () { $("burnAmt").value = ""; updatePreview(); });
   }
   function doClaim() {
     if (!C.mining) { toast(t("toast.notDeployed")); return; }
-    tx("claimBtn", "领取中…", function () { return send(C.mining, SEL.claim); },
+    tx("claimBtn", t("claim.claiming"), function () { return send(C.mining, SEL.claim); },
        t("toast.claimOk"), t("toast.claimFail"));
   }
   function doClaimOwed() {
-    tx("claimOwedBtn", "领取中…", function () { return send(C.mining, SEL.claimOwed); },
+    tx("claimOwedBtn", t("claim.claiming"), function () { return send(C.mining, SEL.claimOwed); },
        t("toast.claimOk"), t("toast.claimFail"));
   }
 
@@ -469,14 +478,14 @@
 
     var qty = readQty(idx);
     var total = ticket * BigInt(qty);
-    tx(isCommunity ? "buyCommunityBtn" : "buyRetailBtn", "认购中…", function () {
+    tx(isCommunity ? "buyCommunityBtn" : "buyRetailBtn", t("tier.buying"), function () {
       return send(C.presale, (isCommunity ? SEL.buyCommunity : SEL.buyRetail) + encUint(qty), total);
     }, t("toast.buyOk") + qty + t("toast.buyOk2"), t("toast.buyFail"));
   }
   function doPresaleClaim(btn) {
     if (!C.presale) { toast(t("toast.presaleNotDeployed")); return; }
-    tx(btn, "领取中…", function () { return send(C.presale, SEL.claim); },
-       "领取成功", "领取失败,可能暂无可领筹码");
+    tx(btn, t("claim.claiming"), function () { return send(C.presale, SEL.claim); },
+       t("toast.claimOk"), t("toast.claimChipsFail"));
   }
 
   /* ---------------- 倒计时（本地按时区算,不耗 RPC） ---------------- */
@@ -629,8 +638,9 @@
     telegram: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3l-3 14.2c-.2 1-.8 1.3-1.7.8l-4.6-3.4-2.2 2.1c-.2.3-.5.5-1 .5l.3-4.6L18.2 6c.4-.3-.1-.5-.6-.2L7.3 12.3l-4.5-1.4c-1-.3-1-1 .2-1.4l17.6-6.8c.8-.3 1.5.2 1.3 1.6z"/></svg>',
     docs: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h8l6 6v14H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm7 1.5V9h5.5L13 3.5zM8 12h8v1.6H8V12zm0 3.4h8V17H8v-1.6z"/></svg>'
   };
-  var LABELS = { qq: "官方 QQ 群", twitter: "官方推特", telegram: "官方 TG", docs: "白皮书" };
-  var LABELS_EN = { qq: "QQ group", twitter: "Twitter", telegram: "Telegram", docs: "Docs" };
+  // Labels live in the dictionary like everything else, so adding a channel means touching
+  // one file rather than two.
+  var SOCIAL_KEYS = { qq: "social.qq", twitter: "social.twitter", telegram: "social.telegram", docs: "social.docs" };
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -643,12 +653,16 @@
     var g = $("ecoGrid");
     if (!g) return;
     g.innerHTML = "";
+    // Falls back to the Chinese field when an English one is missing, so a half-filled config
+    // shows real content rather than blanks.
+    var pick = function (e, k) { return (lang === "en" && e[k + "En"]) || e[k] || ""; };
     list.forEach(function (e) {
       var d = document.createElement("div");
       d.className = "eco-card";
-      var tag = e.tag ? '<span class="tag">' + esc(e.tag) + "</span>" : "";
-      d.innerHTML = tag + '<span class="ico">' + esc(e.icon || "🍪") + "</span>" +
-        "<h4>" + esc(e.title || "") + "</h4><p>" + esc(e.desc || "") + "</p>";
+      var tag = pick(e, "tag");
+      d.innerHTML = (tag ? '<span class="tag">' + esc(tag) + "</span>" : "") +
+        '<span class="ico">' + esc(e.icon || "🍪") + "</span>" +
+        "<h4>" + esc(pick(e, "title")) + "</h4><p>" + esc(pick(e, "desc")) + "</p>";
       g.appendChild(d);
     });
   }
@@ -657,7 +671,6 @@
     var s = C.social || {};
     var box = $("socialLinks");
     if (!box) return;
-    var names = lang === "en" ? LABELS_EN : LABELS;
     box.innerHTML = "";
     ["qq", "twitter", "telegram", "docs"].forEach(function (k) {
       var v = (s[k] || "").trim();
@@ -666,7 +679,7 @@
       var el = document.createElement(isUrl ? "a" : "div");
       el.className = "link";
       if (isUrl) { el.href = v; el.target = "_blank"; el.rel = "noopener"; }
-      el.innerHTML = ICONS[k] + "<span>" + names[k] + (isUrl ? "" : "：" + esc(v)) + "</span>";
+      el.innerHTML = ICONS[k] + "<span>" + t(SOCIAL_KEYS[k]) + (isUrl ? "" : "：" + esc(v)) + "</span>";
       box.appendChild(el);
     });
     if (!box.children.length) {
@@ -778,12 +791,21 @@
       var k = els[i].getAttribute("data-i18n");
       if (els[i].tagName === "INPUT") els[i].placeholder = t(k); else els[i].textContent = t(k);
     }
-    var ph = $("refLink"); if (ph) ph.placeholder = t("inv.placeholder");
+    // Attributes need their own pass: they carry text a screen reader reads out, and leaving
+    // them in one language is exactly the kind of thing nobody notices by looking.
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (e) {
+      e.placeholder = t(e.getAttribute("data-i18n-ph"));
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach(function (e) {
+      e.setAttribute("aria-label", t(e.getAttribute("data-i18n-aria")));
+    });
     var lb = $("langLabel"); if (lb) lb.textContent = lang === "zh" ? "中文" : "English";
     var ul = document.querySelectorAll("#lang li");
     for (var j = 0; j < ul.length; j++) ul[j].classList.toggle("on", ul[j].dataset.lang === lang);
     // Anything drawn from data has to be rebuilt, not just relabelled.
     renderTiers(); renderSaleState(); updateTag(); renderEco(); renderSocial(); renderRefState();
+    initFooter();
+    refresh();
     syncTitle();
   }
 
@@ -907,12 +929,18 @@
   }
 
   /* ---------------- 页脚地址 ---------------- */
+  // Owns both states of these three cells. They used to also carry data-i18n, which meant a
+  // language switch quietly replaced the deployed addresses with "not deployed".
   function initFooter() {
+    // Two copies of each cell: the sidebar (desktop) and the page footer (the only one a
+    // phone ever sees, since the sidebar is a drawer there).
     function link(id, addr, path) {
-      if (!addr) return;
-      var a = $(id);
-      a.textContent = short(addr);
-      a.href = C.explorer + path + addr;
+      [$(id), $(id + "2")].forEach(function (a) {
+        if (!a) return;
+        if (!addr) { a.textContent = t("foot.undeployed"); a.removeAttribute("href"); return; }
+        a.textContent = short(addr);
+        a.href = C.explorer + path + addr;
+      });
     }
     link("fPresale", C.presale, "/address/");
     link("fMining", C.mining, "/address/");

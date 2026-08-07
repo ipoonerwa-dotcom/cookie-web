@@ -64,22 +64,32 @@ window.COOKIE_CONFIG = {
     {
       icon: "🏆",
       title: "预测体育赛事",
+      titleEn: "Sports prediction",
       desc: "把赛果变成可交易的筹码,赛事结束即时结算,人人都能下场。",
-      tag: "开发中"
+      descEn: "Turn match results into tradable chips, settled the moment the game ends.",
+      tag: "开发中",
+      tagEn: "In development"
     },
     {
       icon: "🌐",
       title: "Polymarket",
+      titleEn: "Polymarket",
       desc: "接入全球最大的预测市场,选举、经济、体育——万事皆可预测。",
-      tag: "接入中"
+      descEn: "Plugging into the largest prediction market there is: elections, economics, sport.",
+      tag: "接入中",
+      tagEn: "Integrating"
     },
     {
       icon: "🤖",
       title: "AI Agent 超级 NFT",
+      titleEn: "AI Agent NFT",
       desc: "会自己干活的 NFT:自动跟单、自动打新、自动收益归集。",
-      tag: "规划中"
+      descEn: "NFTs that work for you: copy trading, launch sniping, yield sweeping.",
+      tag: "规划中",
+      tagEn: "Planned"
     }
   ],
+
 
   // 官方链接(留空则该项不显示)
   social: {
