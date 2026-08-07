@@ -96,6 +96,7 @@
     // 预售
     tCommunity: 0n, tRetail: 0n, saleOpen: false, claiming: false,
     bonusBps: 15000n, instBps: 5000n, rate: 0n, maxTickets: 10n, ticketsLeft: 10n,
+    slotsLeft: [null, null],
     pClaimable: 0n, pAlloc: 0n, pClaimed: 0n, boundRef: null
   };
 
@@ -243,11 +244,10 @@
     call(C.presale, SEL.slotInfo).then(function (r) {
       var w = words(r);
       if (w.length < 6) return;
-      var put = function (id, v) { var el = $(id); if (el) el.textContent = Number(v).toLocaleString(); };
-      put("t1Slots", toBig(w[2]));
-      put("t2Slots", toBig(w[5]));
-      var lab = document.querySelectorAll("[data-slotlabel]");
-      for (var i = 0; i < lab.length; i++) lab[i].textContent = t("tier.left");
+      // Stored rather than written straight to the DOM: renderTiers also fills these cells
+      // from config, and whichever landed last used to win.
+      st.slotsLeft = [toBig(w[2]), toBig(w[5])];
+      renderTiers();
     });
 
     call(C.presale, SEL.instantBps).then(function (r) {
@@ -299,8 +299,19 @@
     fill(1, st.tCommunity, (C.presaleTiers && C.presaleTiers[0] ? C.presaleTiers[0].bnb : 1));
     fill(2, st.tRetail, (C.presaleTiers && C.presaleTiers[1] ? C.presaleTiers[1].bnb : 0.2));
     [1, 2].forEach(function (i) {
+      // Live remaining count wins; the configured total is only a placeholder for before the
+      // contract is reachable.
+      var live = st.slotsLeft[i - 1];
       var cfg = C.presaleTiers && C.presaleTiers[i - 1];
-      if (cfg && cfg.slots) put("t" + i + "Slots", Number(cfg.slots).toLocaleString());
+      if (live !== null && live !== undefined) {
+        put("t" + i + "Slots", Number(live).toLocaleString());
+      } else if (cfg && cfg.slots) {
+        put("t" + i + "Slots", Number(cfg.slots).toLocaleString());
+      }
+      var lab = document.querySelectorAll("[data-slotlabel]");
+      for (var k = 0; k < lab.length; k++) {
+        lab[k].textContent = t(st.slotsLeft[0] !== null ? "tier.left" : "tier.total");
+      }
       put("t" + i + "Max", st.maxTickets.toString());
     });
     syncAllQty();
@@ -469,13 +480,25 @@
   }
 
   /* ---------------- 倒计时（本地按时区算,不耗 RPC） ---------------- */
+  var lastDay = null;
+
   function tick() {
     var off = (C.tzOffsetHours != null ? C.tzOffsetHours : 8) * 3600;
-    var left = 86400 - ((Math.floor(Date.now() / 1000) + off) % 86400);
+    var now = Math.floor(Date.now() / 1000) + off;
+    var day = Math.floor(now / 86400);
+    var left = 86400 - (now % 86400);
     $("cH").textContent = String(Math.floor(left / 3600)).padStart(2, "0");
     $("cM").textContent = String(Math.floor((left % 3600) / 60)).padStart(2, "0");
     $("cS").textContent = String(left % 60).padStart(2, "0");
-    if (left <= 1) setTimeout(refresh, 4000);
+
+    if (lastDay === null) { lastDay = day; return; }
+    if (day === lastDay) return;
+    lastDay = day;
+    // Refresh the moment the day turns, rather than waiting out the 20s poll -- otherwise the
+    // claim button sits greyed out with a balance already waiting behind it. A second pass
+    // covers the chain's clock trailing the browser's by a block or two.
+    refresh();
+    setTimeout(refresh, 3000);
   }
 
   /* ---------------- 推荐关系 ---------------- */
