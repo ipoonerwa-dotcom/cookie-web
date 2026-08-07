@@ -10,8 +10,8 @@ window.COOKIE_CONFIG = {
   explorer: "https://bscscan.com",
 
   // 合约(部署后填)
-  mining: "",                      // 销毁挖矿合约
-  presale: "",                     // 预售合约(部署后填)
+  mining: "0x24673f317fC615ffFbe06745A17EbC8355f17E9d",                      // 销毁挖矿合约
+  presale: "0x1924B902760e1a52BA16BEc74D06Fe06C109222b",                     // 预售合约(部署后填)
   token: "",                       // Cookie 代币
   tokenSymbol: "COOKIE",
   tokenDecimals: 18,
