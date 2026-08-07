@@ -204,11 +204,11 @@
       var pct = quota > 0n ? Number(unlocked * 10000n / quota) / 100 : 0;
       $("progBar").style.width = Math.min(100, pct) + "%";
       $("unlockedPct").textContent = pct.toFixed(1) + "%";
-      $("claimBtn").disabled = claimable === 0n;
+      if (txBusy !== "claimBtn") $("claimBtn").disabled = claimable === 0n;
 
       var has = owed > 0n;
       $("owedWrap").style.display = has ? "" : "none";
-      $("claimOwedBtn").style.display = has ? "" : "none";
+      if (txBusy !== "claimOwedBtn") $("claimOwedBtn").style.display = has ? "" : "none";
       if (has) $("owedAmt").textContent = fmt(owed);
       setLevels(levels);
     });
@@ -285,8 +285,10 @@
       var pct = alloc > 0n ? Number(released * 10000n / alloc) / 100 : 0;
       $("pProg").style.width = Math.min(100, pct) + "%";
       $("pPct").textContent = pct.toFixed(1) + "%";
-      $("pClaimBtn").disabled = claimable === 0n;
-      $("pClaimBtn2").disabled = claimable === 0n;
+      if (txBusy !== "pClaimBtn" && txBusy !== "pClaimBtn2") {
+        $("pClaimBtn").disabled = claimable === 0n;
+        $("pClaimBtn2").disabled = claimable === 0n;
+      }
     });
   }
 
@@ -334,6 +336,10 @@
     if (!isFinite(v) || v < 1) v = 1;
     var cap = Number(st.ticketsLeft > 0n ? st.ticketsLeft : st.maxTickets);
     if (cap < 1) cap = 1;
+    // Near the end of the sale the tier can hold fewer slots than the per-address allowance;
+    // letting the stepper pass that just manufactures a guaranteed revert.
+    var live = st.slotsLeft[which - 1];
+    if (live !== null && live !== undefined && live > 0n && Number(live) < cap) cap = Number(live);
     if (v > cap) v = cap;
     return v;
   }
@@ -378,18 +384,20 @@
 
   function renderSaleState() {
     var b1 = $("buyCommunityBtn"), b2 = $("buyRetailBtn"), s = $("pState");
+    if (st.claiming) s.textContent = t("sale.ended");
+    else if (st.saleOpen) s.textContent = t("sale.open", { n: st.maxTickets });
+    else s.textContent = t("sale.notOpen");
+    // A pending buy owns its button.
+    if (txBusy === "buyCommunityBtn" || txBusy === "buyRetailBtn") return;
     if (st.claiming) {
       b1.disabled = b2.disabled = true;
       b1.textContent = b2.textContent = t("sale.btnEnded");
-      s.textContent = t("sale.ended");
     } else if (st.saleOpen) {
       b1.disabled = b2.disabled = false;
       b1.textContent = t("tier.buy1"); b2.textContent = t("tier.buy2");
-      s.textContent = t("sale.open", { n: st.maxTickets });
     } else {
       b1.disabled = b2.disabled = true;
       b1.textContent = b2.textContent = t("sale.btnNotOpen");
-      s.textContent = t("sale.notOpen");
     }
   }
 
@@ -405,6 +413,7 @@
     if (el) el.textContent = t("mine.tagRate", { m: Number(st.mulBps) / 10000, r: Number(st.rateBps) / 100 });
   }
   function syncApprove() {
+    if (txBusy === "approveBtn") return;
     var need = parseAmt($("burnAmt").value);
     var ok = st.allowance > 0n && st.allowance >= need && need > 0n;
     $("approveBtn").disabled = ok;
@@ -417,17 +426,24 @@
   }
 
   /* ---------------- 动作:挖矿 ---------------- */
+  // Button id of the transaction in flight. Pollers repaint button state every 20s, and
+  // without this they re-enable a button whose transaction is still sitting in the wallet.
+  var txBusy = null;
+
   function tx(btn, label, run, okMsg, failMsg) {
     var b = $(btn), old = b.textContent;
+    txBusy = btn;
     b.disabled = true; b.textContent = label;
     return run()
       .then(function (h) { toast(t("toast.submitted")); return waitTx(h); })
       .then(function (r) {
-        if (r && r.status === "0x0") { toast(failMsg); return; }
+        // A null receipt is a two-minute poll giving up, not a success.
+        if (!r) { toast(t("toast.pendingSlow")); refresh(); return; }
+        if (r.status === "0x0") { toast(failMsg); return; }
         toast(okMsg); refresh();
       })
       .catch(function (e) { toast(e.message || failMsg); })
-      .then(function () { b.disabled = false; b.textContent = old; });
+      .then(function () { txBusy = null; b.disabled = false; b.textContent = old; });
   }
 
   function doApprove() {
@@ -474,6 +490,8 @@
     var idx = isCommunity ? 1 : 2;
     var ticket = isCommunity ? st.tCommunity : st.tRetail;
     if (ticket <= 0n) { toast(t("toast.rateFail")); return; }
+    var left = st.slotsLeft[idx - 1];
+    if (left !== null && left !== undefined && left <= 0n) { toast(t("toast.soldOut")); return; }
     if (account && st.ticketsLeft <= 0n) { toast(t("toast.ticketFull") + st.maxTickets); return; }
 
     var qty = readQty(idx);
@@ -771,7 +789,12 @@
   /* ---------------- 中英文 ---------------- */
   var DICT = window.COOKIE_I18N || { zh: {}, en: {} };
   var lang = "zh";
-  try { lang = localStorage.getItem("cookie_lang") || (navigator.language || "").slice(0, 2) === "zh" ? "zh" : "en"; } catch (e) {}
+  try {
+    // The stored choice must win outright. `a || b ? x : y` groups as `(a || b) ? x : y`,
+    // which once turned every stored "en" back into "zh" on reload.
+    var storedLang = localStorage.getItem("cookie_lang");
+    lang = storedLang || (((navigator.language || "").slice(0, 2) === "zh") ? "zh" : "en");
+  } catch (e) {}
   if (lang !== "en") lang = "zh";
 
   // Missing keys fall back to Chinese rather than showing the raw key: a half-translated
@@ -799,6 +822,10 @@
     document.querySelectorAll("[data-i18n-aria]").forEach(function (e) {
       e.setAttribute("aria-label", t(e.getAttribute("data-i18n-aria")));
     });
+    document.title = t("doc.title");
+    // The connect button shows an address once connected; only the disconnected state is a
+    // dictionary string, so it cannot ride on data-i18n.
+    var cb = $("connectBtn"); if (cb) cb.textContent = account ? short(account) : t("btn.connect");
     var lb = $("langLabel"); if (lb) lb.textContent = lang === "zh" ? "中文" : "English";
     var ul = document.querySelectorAll("#lang li");
     for (var j = 0; j < ul.length; j++) ul[j].classList.toggle("on", ul[j].dataset.lang === lang);
