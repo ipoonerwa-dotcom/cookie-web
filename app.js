@@ -13,6 +13,7 @@
     claimOwed: "0xf2652d9c",      // claimOwed()
     userInfo: "0x1959a002",       // userInfo(address)
     bindReferrer: "0x04f618cb",   // bindReferrer(address)
+    teamInfo: "0xcb3119bd",       // teamInfo(address)
     stats: "0xd80528ae",          // stats()
     minBurn: "0xa47c9a2d",        // minBurn()
     dailyRateBps: "0x812667d7",   // dailyRateBps()
@@ -106,7 +107,8 @@
     tCommunity: 0n, tRetail: 0n, saleOpen: false, claiming: false,
     bonusBps: 15000n, instBps: 5000n, rate: 0n, maxTickets: 10n, ticketsLeft: 10n,
     slotsLeft: [null, null],
-    pClaimable: 0n, pAlloc: 0n, pClaimed: 0n, boundRef: null
+    pClaimable: 0n, pAlloc: 0n, pClaimed: 0n, boundRef: null,
+    team: null, refEarned: 0n
   };
 
   function toast(msg, ms) {
@@ -184,6 +186,13 @@
     });
     if (!account) return;
 
+    call(C.mining, SEL.teamInfo + encAddr(account)).then(function (r) {
+      var w = words(r);
+      if (w.length < 5) return;
+      st.team = { g1: toBig(w[0]), g2: toBig(w[1]), g3: toBig(w[2]), indirect: toBig(w[3]), total: toBig(w[4]) };
+      renderTeam();
+    });
+
     call(C.mining, SEL.userInfo + encAddr(account)).then(function (r) {
       var w = words(r);
       if (w.length < 12) return;
@@ -198,7 +207,9 @@
       $("mQuota").textContent = fmt(quota);
       $("mBurned").textContent = fmt(burned);
       $("mClaimed").textContent = fmt(claimed);
+      st.refEarned = refEarned;
       $("mRef").textContent = fmt(refEarned);
+      renderTeam();
       $("perDay").textContent = fmt(perDay);
 
       var pct = quota > 0n ? Number(unlocked * 10000n / quota) / 100 : 0;
@@ -590,6 +601,33 @@
     if (wrap) wrap.style.opacity = bound ? ".5" : "1";
   }
 
+  /**
+   * Headcount by generation. Whole people, so these bypass fmt() -- nobody has 1.2K downlines
+   * and rendering "1.2K" where someone expects "1200" reads as a rounding bug.
+   */
+  function renderTeam() {
+    var card = $("teamTotal");
+    if (!card) return;
+    var tm = st.team;
+    var n = function (v) { return String(v == null ? 0 : v); };
+    if (!account) {
+      ["teamTotal", "teamDirect", "teamIndirect", "teamG1", "teamG2", "teamG3"].forEach(function (id) {
+        var el = $(id); if (el) el.textContent = "—";
+      });
+      $("teamEarned").textContent = "—";
+      $("teamHint").textContent = t("team.needWallet");
+      return;
+    }
+    $("teamTotal").textContent = tm ? n(tm.total) : "0";
+    $("teamDirect").textContent = tm ? n(tm.g1) : "0";
+    $("teamIndirect").textContent = tm ? n(tm.indirect) : "0";
+    $("teamG1").textContent = tm ? n(tm.g1) : "0";
+    $("teamG2").textContent = tm ? n(tm.g2) : "0";
+    $("teamG3").textContent = tm ? n(tm.g3) : "0";
+    $("teamEarned").textContent = fmt(st.refEarned) + " " + (C.tokenSymbol || "COOKIE");
+    $("teamHint").textContent = (tm && tm.total > 0n) ? t("team.hint") : t("team.empty");
+  }
+
   function doBind() {
     if (!C.mining) { toast(t("toast.notDeployed")); return; }
     var ref = pendingRef();
@@ -830,7 +868,7 @@
     var ul = document.querySelectorAll("#lang li");
     for (var j = 0; j < ul.length; j++) ul[j].classList.toggle("on", ul[j].dataset.lang === lang);
     // Anything drawn from data has to be rebuilt, not just relabelled.
-    renderTiers(); renderSaleState(); updateTag(); renderEco(); renderSocial(); renderRefState();
+    renderTiers(); renderSaleState(); updateTag(); renderEco(); renderSocial(); renderRefState(); renderTeam();
     initFooter();
     refresh();
     syncTitle();
@@ -997,6 +1035,7 @@
     var seeded = pendingRef();
     if (isAddr(seeded)) $("refInput").value = seeded;
     renderRefState();
+    renderTeam();
 
     $("connectBtn").onclick = connect;
     $("approveBtn").onclick = doApprove;

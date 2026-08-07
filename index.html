@@ -382,6 +382,28 @@ h1{margin:0 0 12px;font-size:clamp(34px,7vw,58px);line-height:1.1;font-weight:90
 @media(max-width:520px){.refrow .btn{margin-left:0;width:100%}}
 
 /* ---------------- 三代 ---------------- */
+.teamrow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}
+.teambox{background:var(--surf-2);border:1px solid var(--line);border-radius:14px;
+  padding:16px 12px;text-align:center}
+.teambox b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  line-height:1.15}
+.teambox span{display:block;margin-top:6px;font-size:11.5px;color:rgba(255,255,255,.5)}
+.teambox-hero{border-color:rgba(212,175,55,.34);
+  background:linear-gradient(150deg,rgba(212,175,55,.13),rgba(212,175,55,.03))}
+.teambox-hero b{font-size:32px}
+.teamsplit{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.teamsplit .kv{margin:0;padding:10px 12px;background:var(--surf-2);border:1px solid var(--line);
+  border-radius:11px;font-size:12px}
+@media (max-width:560px){
+  .teamrow{grid-template-columns:1fr;gap:10px}
+  .teambox{display:flex;align-items:center;justify-content:space-between;text-align:left;padding:14px 16px}
+  .teambox b{font-size:22px}
+  .teambox-hero b{font-size:24px}
+  .teambox span{margin-top:0}
+  .teamsplit{grid-template-columns:1fr}
+  .teamsplit .kv{display:flex;justify-content:space-between}
+}
 .gens{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .gen{
   text-align:center;padding:20px 10px;border-radius:var(--r);
@@ -768,6 +790,32 @@ html.reveal-ready .reveal[data-d="3"]{transition-delay:.24s}
         <input id="refLink" readonly data-i18n-ph="inv.placeholder" placeholder="连接钱包后生成">
         <button class="mini" id="copyBtn" data-i18n="inv.copy">复制</button>
       </div>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="team.title">我的团队</h3>
+      <p class="sub" data-i18n="team.sub">下级完成链上绑定后计入,数据实时读取自合约</p>
+      <div class="teamrow">
+        <div class="teambox teambox-hero">
+          <b id="teamTotal">0</b>
+          <span data-i18n="team.total">团队总人数</span>
+        </div>
+        <div class="teambox">
+          <b id="teamDirect">0</b>
+          <span data-i18n="team.direct">直推(一代)</span>
+        </div>
+        <div class="teambox">
+          <b id="teamIndirect">0</b>
+          <span data-i18n="team.indirect">间推(二、三代)</span>
+        </div>
+      </div>
+      <div class="teamsplit">
+        <div class="kv"><span data-i18n="team.g1">一代</span><b id="teamG1">0</b></div>
+        <div class="kv"><span data-i18n="team.g2">二代</span><b id="teamG2">0</b></div>
+        <div class="kv"><span data-i18n="team.g3">三代</span><b id="teamG3">0</b></div>
+      </div>
+      <div class="kv" style="margin-top:12px"><span data-i18n="team.earned">累计邀请奖励</span><b id="teamEarned">0</b></div>
+      <p class="hint" id="teamHint" style="margin-top:12px" data-i18n="team.hint">只统计到第三代,因为奖励也只发到第三代。</p>
     </div>
 
     <div class="card">
